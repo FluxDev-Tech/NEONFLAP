@@ -95,39 +95,42 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
       const playerX = manager.player?.position.x || 0;
 
+      // Parallax drawing Helper
+      const drawParallaxLayer = (img: HTMLImageElement, parallax: number, alpha: number, yOffset: number, scale: number = 1) => {
+          const forestHeight = dimensions.height;
+          const forestWidth = forestHeight * (16/9);
+          const scaledWidth = forestWidth * scale;
+          const offset = -(playerX * parallax) % scaledWidth;
+          ctx.globalAlpha = alpha;
+          
+          ctx.drawImage(img, offset, yOffset, scaledWidth, forestHeight * scale);
+          if (offset + scaledWidth < dimensions.width) {
+              ctx.drawImage(img, offset + scaledWidth, yOffset, scaledWidth, forestHeight * scale);
+          }
+          if (offset > 0) {
+              ctx.drawImage(img, offset - scaledWidth, yOffset, scaledWidth, forestHeight * scale);
+          }
+      };
+
       // Draw Parallax Forest (Optimized)
       if (forestImg.current) {
-        const forestHeight = dimensions.height;
-        const forestWidth = forestHeight * (16/9); 
-        
-        const drawParallaxLayer = (parallax: number, alpha: number, yOffset: number, scale: number = 1) => {
-            const scaledWidth = forestWidth * scale;
-            const offset = -(playerX * parallax) % scaledWidth;
-            ctx.globalAlpha = alpha;
-            
-            // Draw 3 tiles to cover all edge cases during high-speed movement
-            ctx.drawImage(forestImg.current, offset - scaledWidth, yOffset, scaledWidth, forestHeight * scale);
-            ctx.drawImage(forestImg.current, offset, yOffset, scaledWidth, forestHeight * scale);
-            ctx.drawImage(forestImg.current, offset + scaledWidth, yOffset, scaledWidth, forestHeight * scale);
-        };
-
         // Deep layer
-        drawParallaxLayer(0.05, 0.12, -50, 2);
+        drawParallaxLayer(forestImg.current, 0.05, 0.12, -50, 2);
         // Mid layer
-        drawParallaxLayer(0.15, 0.3, 0);
+        drawParallaxLayer(forestImg.current, 0.15, 0.3, 0);
         
         // Polished Background Particles (Dust/Data bits)
         ctx.globalAlpha = 0.2;
         ctx.fillStyle = '#00f2ff';
+        const pXBase = playerX * 0.2;
         for (let i = 0; i < 20; i++) {
-            const px = (i * 243 + playerX * 0.2) % dimensions.width;
+            const px = (i * 243 + pXBase) % dimensions.width;
             const py = (i * 117) % dimensions.height;
             ctx.fillRect(px, py, 2, 2);
         }
 
         // Fore layer
-        drawParallaxLayer(0.4, 0.06, -100, 1.3);
-
+        drawParallaxLayer(forestImg.current, 0.4, 0.06, -100, 1.3);
         ctx.globalAlpha = 1.0;
       }
 

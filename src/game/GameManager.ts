@@ -32,6 +32,42 @@ export class GameManager {
     });
     this.world = this.engine.world;
     this.runner = Matter.Runner.create();
+    this.setupCollisions();
+  }
+
+  private setupCollisions() {
+    Matter.Events.on(this.engine, 'collisionStart', (event) => {
+      if (this.gameState !== GameState.PLAYING) return;
+      
+      event.pairs.forEach((pair) => {
+        const labels = [pair.bodyA.label, pair.bodyB.label];
+        if (labels.includes('player')) {
+          if (labels.includes('obstacle') || labels.includes('ground')) {
+            this.setGameState(GameState.GAME_OVER);
+            soundManager.playGameOver();
+          }
+          if (labels.includes('collectible')) {
+            const token = pair.bodyA.label === 'collectible' ? pair.bodyA : pair.bodyB;
+            Matter.World.remove(this.world, token);
+            this.score += 50; 
+            this.onScoreChange(this.score);
+            soundManager.playCollect();
+          }
+          if (labels.includes('pipe_score')) {
+             const trigger = pair.bodyA.label === 'pipe_score' ? pair.bodyA : pair.bodyB;
+             trigger.isSensor = false; 
+             Matter.World.remove(this.world, trigger);
+             this.score += 10;
+             this.onScoreChange(this.score);
+             soundManager.playFlip(); 
+          }
+          if (labels.includes('win')) {
+            this.setGameState(GameState.WIN);
+            soundManager.playWin();
+          }
+        }
+      });
+    });
   }
 
   public init(width: number, height: number) {
@@ -41,12 +77,12 @@ export class GameManager {
     this.score = 0;
     this.onScoreChange(this.score);
     this.gravityDirection = 1;
-    this.engine.gravity.y = 1.0; // Lowered gravity for easier flight
-
+    this.engine.gravity.y = 1.0; 
+    
     // Player (Bird) - Using a circle for smoother physics and less 'boxy' collisions
     this.player = Matter.Bodies.circle(100, height / 2, 22, {
       friction: 0.0001,
-      frictionAir: 0.045, // Slightly more air resistance for better control
+      frictionAir: 0.045, 
       restitution: 0.3, 
       density: 0.001,
       label: 'player',
@@ -60,9 +96,9 @@ export class GameManager {
     Matter.World.add(this.world, [this.player, ground, ceiling]);
 
     // Create flappy pipes
-    const gapSize = 320; // Even larger gap for very easy gameplay
+    const gapSize = 320; 
     for (let i = 0; i < 40; i++) {
-        const x = 900 + i * 750; // More space between pipes
+        const x = 900 + i * 750; 
         const minH = 60;
         const maxH = height - gapSize - minH;
         const topPipeH = minH + Math.random() * maxH;
@@ -94,7 +130,7 @@ export class GameManager {
         Matter.World.add(this.world, scoreTrigger);
 
         // Random collectible in some gaps
-        if (Math.random() > 0.6) { // More collectibles (from 0.7 to 0.6)
+        if (Math.random() > 0.6) { 
             const collY = topPipeH + gapSize/2;
             const coll = Matter.Bodies.circle(x + 200, collY + (Math.random() - 0.5) * 100, 15, {
                 isStatic: true,
@@ -113,38 +149,8 @@ export class GameManager {
         label: 'win'
     });
     Matter.World.add(this.world, winTrigger);
-
-    Matter.Events.on(this.engine, 'collisionStart', (event) => {
-      event.pairs.forEach((pair) => {
-        const labels = [pair.bodyA.label, pair.bodyB.label];
-        if (labels.includes('player')) {
-          if (labels.includes('obstacle') || labels.includes('ground')) {
-            this.setGameState(GameState.GAME_OVER);
-            soundManager.playGameOver();
-          }
-          if (labels.includes('collectible')) {
-            const token = pair.bodyA.label === 'collectible' ? pair.bodyA : pair.bodyB;
-            Matter.World.remove(this.world, token);
-            this.score += 50; 
-            this.onScoreChange(this.score);
-            soundManager.playCollect();
-          }
-          if (labels.includes('pipe_score')) {
-             const trigger = pair.bodyA.label === 'pipe_score' ? pair.bodyA : pair.bodyB;
-             trigger.isSensor = false; 
-             Matter.World.remove(this.world, trigger);
-             this.score += 10;
-             this.onScoreChange(this.score);
-             soundManager.playFlip(); 
-          }
-          if (labels.includes('win')) {
-            this.setGameState(GameState.WIN);
-            soundManager.playWin();
-          }
-        }
-      });
-    });
   }
+
 
   public setGameState(state: GameState) {
     this.gameState = state;
