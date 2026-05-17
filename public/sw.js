@@ -1,10 +1,11 @@
-const CACHE_NAME = 'neon-flap-v1';
+const CACHE_NAME = 'neon-flap-v2';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/bird.png',
   '/forest-bg.png',
+  '/icon-512.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap'
 ];
 

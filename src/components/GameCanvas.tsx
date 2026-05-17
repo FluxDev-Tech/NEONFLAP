@@ -192,85 +192,75 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.lineTo(body.position.x, dimensions.height);
             ctx.stroke();
         } else if (body.label === 'player') {
-            const size = 58; 
+            const size = 62; 
             const time = now * 0.004;
-            // Subtle idle sway (vertical and rotational)
             const swayY = Math.sin(time) * 4;
             const swayRot = Math.sin(time * 0.8) * 0.04;
             
             ctx.save();
             ctx.translate(body.position.x, body.position.y + swayY);
             
-            // Smoother rotation based on velocity + sway
             const velocityRot = Math.max(-0.4, Math.min(0.6, body.velocity.y * 0.05));
             ctx.rotate(velocityRot + swayRot);
 
             if (birdImg.current) {
+                // Using a slightly more aggressive clip to shave off any edge pixels from the sprite box
                 ctx.save();
-                // We use two-stage composite logic to ensure NO box is visible
+                ctx.beginPath();
+                ctx.arc(0, 0, (size/2) - 4, 0, Math.PI * 2);
+                ctx.clip();
                 
-                // 1. Draw the actual sprite with 'screen' to blend black backgrounds
                 ctx.globalCompositeOperation = 'screen';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
-                
-                // 2. Add an intense circular halo to 'seal' the character into the world
-                const coreGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
-                coreGlow.addColorStop(0, 'rgba(0, 242, 255, 0.7)');
-                coreGlow.addColorStop(0.3, 'rgba(0, 242, 255, 0.2)');
-                coreGlow.addColorStop(1, 'rgba(0, 242, 255, 0)');
-                
-                ctx.fillStyle = coreGlow;
+                ctx.restore();
+
+                // Add a glow that matches the neon bird
+                const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
+                glow.addColorStop(0, 'rgba(0, 242, 255, 0.5)');
+                glow.addColorStop(0.4, 'rgba(0, 242, 255, 0.2)');
+                glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = glow;
                 ctx.beginPath();
                 ctx.arc(0, 0, size/2, 0, Math.PI * 2);
                 ctx.fill();
-                
-                ctx.restore();
             }
-
             ctx.restore();
         } else if (body.label === 'obstacle') {
             const vertices = body.vertices;
+            // Only draw if on screen
+            if (vertices[0].x > viewRight || vertices[1].x < viewLeft) return;
+
             const width = Math.abs(vertices[1].x - vertices[0].x);
             const height = Math.abs(vertices[2].y - vertices[0].y);
             const cx = (vertices[0].x + vertices[1].x) / 2;
             const cy = (vertices[0].y + vertices[2].y) / 2;
-
             const isTopPipe = cy < dimensions.height / 2;
 
-            // Pillar Body - Deep Red Gradient with rounded corners
-            const bodyGradient = ctx.createLinearGradient(cx - width/2, 0, cx + width/2, 0);
-            bodyGradient.addColorStop(0, '#1a0000');
-            bodyGradient.addColorStop(0.5, '#3a0000');
-            bodyGradient.addColorStop(1, '#1a0000');
-            ctx.fillStyle = bodyGradient;
-            
-            // Draw with rounded corners for 'user friendly' aesthetic
+            // Deep Pillar Body
+            ctx.fillStyle = '#100005';
             ctx.beginPath();
-            if (isTopPipe) {
-                ctx.roundRect(cx - width/2, cy - height/2, width, height, [0, 0, 10, 10]);
-            } else {
-                ctx.roundRect(cx - width/2, cy - height/2, width, height, [10, 10, 0, 0]);
-            }
+            ctx.roundRect(cx - width/2, cy - height/2, width, height, isTopPipe ? [0, 0, 12, 12] : [12, 12, 0, 0]);
             ctx.fill();
             
-            // Vibrant Neon Red Highlights
-            ctx.strokeStyle = '#ff1144';
-            ctx.lineWidth = 1.5;
+            // Neon Glow Edges
+            ctx.strokeStyle = '#ff0055';
+            ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Energy Tip (Rounded)
-            const capHeight = 16;
-            const tipY = isTopPipe ? (cy + height/2 - capHeight) : (cy - height/2);
-            
-            ctx.fillStyle = '#ff1144';
+            // Energy Cap
+            const capH = 18;
+            const capY = isTopPipe ? (cy + height/2 - capH) : (cy - height/2);
+            ctx.fillStyle = '#ff0055';
             ctx.beginPath();
-            ctx.roundRect(cx - width/2 - 4, tipY, width + 8, capHeight, 6);
+            ctx.roundRect(cx - width/2 - 6, capY, width + 12, capH, 6);
             ctx.fill();
             
-            // White hot energy center
-            ctx.fillStyle = '#ffffff';
+            // Pulse effect cap
+            const pulse = (Math.sin(now * 0.01) + 1) * 0.3;
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + pulse})`;
             ctx.beginPath();
-            ctx.roundRect(cx - width/2 + 8, tipY + 4, width - 16, capHeight - 8, 4);
+            ctx.roundRect(cx - width/2 + 6, capY + 5, width - 12, capH - 10, 4);
             ctx.fill();
         } else if (body.label === 'ground') {
             // Not explicitly drawn box for ground, but we could add a floor line
