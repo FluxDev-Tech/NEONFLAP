@@ -207,28 +207,23 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
             if (birdImg.current) {
                 ctx.save();
-                // Tight circular clipping path to ensure no rectangular artifacts remain
-                ctx.beginPath();
-                ctx.arc(0, 0, size/2 - 8, 0, Math.PI * 2);
-                ctx.clip();
+                // We use two-stage composite logic to ensure NO box is visible
                 
-                // Screen composite to blend neon highlights and eliminate pure black background
+                // 1. Draw the actual sprite with 'screen' to blend black backgrounds
                 ctx.globalCompositeOperation = 'screen';
-                // Crop the source image slightly (10px padding) to avoid edge noise
-                ctx.drawImage(birdImg.current, 10, 10, 492, 492, -size/2, -size/2, size, size);
-                ctx.restore();
+                ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
                 
-                // Outer core glow for better atmospheric integration
-                ctx.save();
-                ctx.globalCompositeOperation = 'screen';
+                // 2. Add an intense circular halo to 'seal' the character into the world
+                const coreGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
+                coreGlow.addColorStop(0, 'rgba(0, 242, 255, 0.7)');
+                coreGlow.addColorStop(0.3, 'rgba(0, 242, 255, 0.2)');
+                coreGlow.addColorStop(1, 'rgba(0, 242, 255, 0)');
+                
+                ctx.fillStyle = coreGlow;
                 ctx.beginPath();
-                const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
-                glow.addColorStop(0, 'rgba(0, 242, 255, 0.4)');
-                glow.addColorStop(0.6, 'rgba(0, 242, 255, 0.1)');
-                glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
-                ctx.fillStyle = glow;
                 ctx.arc(0, 0, size/2, 0, Math.PI * 2);
                 ctx.fill();
+                
                 ctx.restore();
             }
 
@@ -313,6 +308,23 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     }
   }, [gameState, dimensions]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Escape' || e.code === 'KeyP') {
+        if (gameState === GameState.PLAYING) {
+          onStateUpdate(GameState.PAUSED);
+        } else if (gameState === GameState.PAUSED) {
+          onStateUpdate(GameState.PLAYING);
+        }
+      }
+      if (e.code === 'Space') {
+        handleInteraction();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameState]);
+
   const handleInteraction = () => {
       if (managerRef.current) {
           if (gameState === GameState.START || gameState === GameState.GAME_OVER || gameState === GameState.WIN || gameState === GameState.PAUSED) {
@@ -333,7 +345,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
           e.preventDefault();
           handleInteraction();
         }}
-        onKeyDown={(e) => e.code === 'Space' && handleInteraction()}
         tabIndex={0}
     >
       {isOffline && (

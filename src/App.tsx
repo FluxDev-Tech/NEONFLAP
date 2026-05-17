@@ -96,44 +96,46 @@ export default function App() {
         />
       </div>
 
-      <div className="absolute top-6 left-6 z-10 pointer-events-none select-none">
+      <div className="absolute top-10 left-8 z-10 pointer-events-none select-none">
         <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 text-[#00f2ff] opacity-60 mb-1">
-            <Zap size={10} fill="currentColor" />
-            <span className="text-[8px] font-black tracking-[0.2em] uppercase">2026 EDITION</span>
+          <div className="flex items-center gap-1.5 text-[#00f2ff] opacity-60 mb-2">
+            <Zap size={12} fill="currentColor" />
+            <span className="text-[10px] font-black tracking-[0.3em] uppercase">2026 EDITION</span>
           </div>
           <div className="flex flex-col relative">
-            <div className={`text-4xl sm:text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white'}`}>
+            <div className={`text-6xl sm:text-7xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_30px_rgba(240,255,0,0.8)] animate-pulse' : 'text-white'}`}>
               {score.toString().padStart(6, '0')}
             </div>
             
-            <div className="flex flex-col mt-2 ml-0.5">
-              <span className="text-[8px] uppercase font-black tracking-[0.3em] text-white/30 leading-none mb-1">Best</span>
-              <span className="text-xs sm:text-sm font-mono font-bold text-white/40 tabular-nums leading-none">
-                {displayedBest.toString().padStart(6, '0')}
-              </span>
+            <div className="flex flex-col mt-4 ml-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[10px] uppercase font-black tracking-[0.2em] text-white/40">BEST</span>
+                <span className="text-lg sm:text-xl font-mono font-bold text-white/50 tabular-nums leading-none">
+                  {displayedBest.toString().padStart(6, '0')}
+                </span>
+              </div>
             </div>
 
             {isNewRecordReached && (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute -right-4 top-10 text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-2 py-0.5 rounded border border-[#f0ff00]/30 rotate-12"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="absolute -right-24 top-12 text-[10px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/20 px-3 py-1 rounded border border-[#f0ff00]/40 rotate-12"
               >
-                Record Broken
+                RECORD SYNCED
               </motion.div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="absolute top-6 right-6 z-10 pointer-events-none">
+      <div className="absolute top-10 right-8 z-10">
         {gameState === GameState.PLAYING && (
           <button 
             onClick={() => handleStateChange(GameState.PAUSED)}
-            className="pointer-events-auto bg-white/5 hover:bg-white/10 p-4 rounded-full border border-white/10 transition-colors backdrop-blur-md group"
+            className="pointer-events-auto bg-white/5 hover:bg-white/10 p-5 rounded-full border border-white/10 transition-all backdrop-blur-md group shadow-xl active:scale-95"
           >
-            <Pause size={20} className="text-white group-hover:scale-110 transition-transform" />
+            <Pause size={24} className="text-white group-hover:scale-110 transition-transform" />
           </button>
         )}
       </div>
@@ -191,7 +193,10 @@ export default function App() {
               )}
             </div>
 
-            <p className="mt-8 text-neutral-500 text-sm animate-pulse uppercase tracking-widest text-center px-4">Click or press SPACE to fly</p>
+            <p className="mt-8 text-neutral-500 text-sm animate-pulse uppercase tracking-[0.4em] text-center px-4 font-mono">
+              <span className="hidden sm:inline">Press SPACE or Click</span>
+              <span className="sm:hidden">Tap Screen</span> to Flux
+            </p>
           </motion.div>
         )}
 
