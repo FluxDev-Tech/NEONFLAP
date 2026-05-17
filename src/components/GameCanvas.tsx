@@ -193,7 +193,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.lineTo(gradX, dimensions.height);
             ctx.stroke();
         } else if (body.label === 'player') {
-            const size = 64; 
             const time = now * 0.005;
             const swayY = Math.sin(time) * 3;
             
@@ -203,41 +202,54 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             const velocityRot = Math.max(-0.4, Math.min(0.7, body.velocity.y * 0.05));
             ctx.rotate(velocityRot);
 
-            // Draw Custom Neon Bird silhouette - "Remove that wings" version
+            // NEON BIRD CONSTRUCTION
             ctx.shadowBlur = 20;
             ctx.shadowColor = '#00f2ff';
             
-            // 1. Sleek Body (Neon Blue)
-            ctx.fillStyle = '#00f2ff';
+            // 1. Core Body (Bright Yellow-Cyan Neon)
+            ctx.fillStyle = '#f0ff00';
             ctx.beginPath();
             // Aerodynamic flappy-style body
-            ctx.moveTo(-20, -10);
-            ctx.quadraticCurveTo(0, -22, 25, -2); // Top
-            ctx.lineTo(35, 0); // Beak
-            ctx.lineTo(25, 4); // Bottom beak
-            ctx.quadraticCurveTo(0, 20, -20, 10); // Bottom
-            ctx.closePath();
+            ctx.ellipse(0, 0, 26, 20, 0, 0, Math.PI * 2);
             ctx.fill();
-            
-            // 2. High-Tech Cockpit/Eye
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.ellipse(12, -4, 5, 3, 0.4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 3. Engine Core (Neon Pink Tail/Rear)
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 2. Iconic Beak (Neon Pink)
             ctx.fillStyle = '#ff0055';
             ctx.beginPath();
+            ctx.moveTo(18, -4);
+            ctx.lineTo(36, 4);
+            ctx.lineTo(18, 12);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // 3. Large expressive Eye
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(12, -7, 9, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(16, -7, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 4. Integrated Energy Core (Tail instead of wings)
+            ctx.fillStyle = '#00f2ff';
+            ctx.beginPath();
             ctx.moveTo(-18, -8);
-            ctx.lineTo(-28, 0);
+            ctx.lineTo(-30, 0);
             ctx.lineTo(-18, 8);
             ctx.closePath();
             ctx.fill();
             
-            // 4. Stable Energy Halo (No wings)
+            // 5. Overall Glow Halo
             ctx.shadowBlur = 0;
             const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 45);
-            glow.addColorStop(0, 'rgba(0, 242, 255, 0.25)');
+            glow.addColorStop(0, 'rgba(0, 242, 255, 0.2)');
             glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
             ctx.fillStyle = glow;
             ctx.beginPath();
