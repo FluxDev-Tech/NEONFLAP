@@ -74,14 +74,13 @@ export default function App() {
   }, [highScore]);
 
   const handleStateChange = useCallback((newState: GameState) => {
-    setGameState(newState);
-    if (newState === GameState.PLAYING) {
-      if (gameState === GameState.START || gameState === GameState.GAME_OVER || gameState === GameState.WIN) {
-          setScore(0);
-          scoreRef.current = 0;
-          setIsNewRecordReached(false);
-      }
+    // Handling restarts from game-over or manual restart in pause
+    if (newState === GameState.PLAYING && (gameState === GameState.GAME_OVER || gameState === GameState.WIN || gameState === GameState.START)) {
+      setScore(0);
+      scoreRef.current = 0;
+      setIsNewRecordReached(false);
     }
+    setGameState(newState);
   }, [gameState]);
 
   return (

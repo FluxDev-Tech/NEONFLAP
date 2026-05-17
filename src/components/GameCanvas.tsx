@@ -141,27 +141,28 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
       ctx.save();
       ctx.translate(offsetX, offsetY);
 
-      // Draw grid (Optimized with tighter bounds)
-      ctx.strokeStyle = 'rgba(0, 242, 255, 0.015)'; 
+      // Draw grid (Optimized: Only draw visible lines)
+      ctx.strokeStyle = 'rgba(0, 242, 255, 0.02)'; 
       ctx.lineWidth = 1;
       const gridSize = 150;
-      const startX = Math.floor(playerX / gridSize) * gridSize - gridSize;
-      const endX = startX + dimensions.width + gridSize * 2;
+      const gridStartX = Math.floor((playerX - 200) / gridSize) * gridSize;
+      const gridEndX = gridStartX + dimensions.width + gridSize;
+      
       ctx.beginPath();
-      for (let x = startX; x < endX; x += gridSize) {
+      for (let x = gridStartX; x < gridEndX; x += gridSize) {
         ctx.moveTo(x, 0);
         ctx.lineTo(x, dimensions.height);
       }
       ctx.stroke();
 
-      // Culling bounds
-      const viewLeft = playerX - 400;
+      // Culling bounds for entities
+      const viewLeft = playerX - 300;
       const viewRight = playerX + dimensions.width + 100;
 
       // Draw Bodies
       const bodies = manager.world.bodies;
       bodies.forEach(body => {
-        // Simple Culling
+        // Strict Frustum Culling
         if (body.label !== 'player' && body.label !== 'ground') {
             if (body.position.x < viewLeft || body.position.x > viewRight) return;
         }
@@ -169,101 +170,93 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
         if (body.label === 'collectible') {
             ctx.beginPath();
             ctx.fillStyle = '#f0ff00';
-            ctx.arc(body.position.x, body.position.y, 15, 0, Math.PI * 2);
+            ctx.arc(body.position.x, body.position.y, 12, 0, Math.PI * 2);
             ctx.fill();
             
-            // Inner core
             ctx.beginPath();
             ctx.fillStyle = '#ffffff';
-            ctx.arc(body.position.x, body.position.y, 5, 0, Math.PI * 2);
+            ctx.arc(body.position.x, body.position.y, 4, 0, Math.PI * 2);
             ctx.fill();
         } else if (body.label === 'win') {
-            const gradient = ctx.createLinearGradient(body.position.x - 50, 0, body.position.x + 50, 0);
+            const gradX = body.position.x;
+            const gradient = ctx.createLinearGradient(gradX - 100, 0, gradX + 100, 0);
             gradient.addColorStop(0, 'transparent');
-            gradient.addColorStop(0.5, 'rgba(0, 255, 68, 0.3)');
+            gradient.addColorStop(0.5, 'rgba(0, 242, 255, 0.2)');
             gradient.addColorStop(1, 'transparent');
             ctx.fillStyle = gradient;
-            ctx.fillRect(body.position.x - 100, 0, 200, dimensions.height);
+            ctx.fillRect(gradX - 150, 0, 300, dimensions.height);
             
-            ctx.strokeStyle = '#00ff44';
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#00f2ff';
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(body.position.x, 0);
-            ctx.lineTo(body.position.x, dimensions.height);
+            ctx.moveTo(gradX, 0);
+            ctx.lineTo(gradX, dimensions.height);
             ctx.stroke();
         } else if (body.label === 'player') {
-            const size = 62; 
-            const time = now * 0.004;
-            const swayY = Math.sin(time) * 4;
-            const swayRot = Math.sin(time * 0.8) * 0.04;
+            const size = 64; 
+            const time = now * 0.005;
+            const swayY = Math.sin(time) * 3;
             
             ctx.save();
             ctx.translate(body.position.x, body.position.y + swayY);
             
-            const velocityRot = Math.max(-0.4, Math.min(0.6, body.velocity.y * 0.05));
-            ctx.rotate(velocityRot + swayRot);
+            const velocityRot = Math.max(-0.3, Math.min(0.5, body.velocity.y * 0.04));
+            ctx.rotate(velocityRot);
 
             if (birdImg.current) {
-                // 1. Double-Layer Masking to kill the "Box"
-                // First clip tightly
+                // Perfect Orb Masking
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(0, 0, (size/2) - 10, 0, Math.PI * 2);
+                ctx.arc(0, 0, (size/2) - 8, 0, Math.PI * 2);
                 ctx.clip();
                 
-                // Then draw using SCREEN composite to handle black pixels
                 ctx.globalCompositeOperation = 'screen';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
                 ctx.restore();
 
-                // 2. Add an intense neon core glow to 'seal' the character
+                // Core Pulse
                 const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
-                glow.addColorStop(0, 'rgba(0, 242, 255, 0.6)');
+                glow.addColorStop(0, 'rgba(0, 242, 255, 0.7)');
                 glow.addColorStop(0.4, 'rgba(0, 242, 255, 0.2)');
                 glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
                 
                 ctx.globalCompositeOperation = 'screen';
                 ctx.fillStyle = glow;
                 ctx.beginPath();
-                ctx.arc(0, 0, size/2, 0, Math.PI * 2);
+                ctx.arc(0, 0, size * 0.6, 0, Math.PI * 2);
                 ctx.fill();
             }
             ctx.restore();
         } else if (body.label === 'obstacle') {
             const vertices = body.vertices;
-            // Only draw if on screen
-            if (vertices[0].x > viewRight || vertices[1].x < viewLeft) return;
-
             const width = Math.abs(vertices[1].x - vertices[0].x);
             const height = Math.abs(vertices[2].y - vertices[0].y);
             const cx = (vertices[0].x + vertices[1].x) / 2;
             const cy = (vertices[0].y + vertices[2].y) / 2;
             const isTopPipe = cy < dimensions.height / 2;
 
-            // Deep Pillar Body
-            ctx.fillStyle = '#100005';
+            // Deep Modern Pillar
+            ctx.fillStyle = '#0a0005';
             ctx.beginPath();
-            ctx.roundRect(cx - width/2, cy - height/2, width, height, isTopPipe ? [0, 0, 12, 12] : [12, 12, 0, 0]);
+            ctx.roundRect(cx - width/2, cy - height/2, width, height, isTopPipe ? [0, 0, 16, 16] : [16, 16, 0, 0]);
             ctx.fill();
             
-            // Neon Glow Edges
             ctx.strokeStyle = '#ff0055';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.stroke();
             
-            // Energy Cap
-            const capH = 18;
+            // Energy Flux Cap
+            const capH = 22;
             const capY = isTopPipe ? (cy + height/2 - capH) : (cy - height/2);
             ctx.fillStyle = '#ff0055';
             ctx.beginPath();
-            ctx.roundRect(cx - width/2 - 6, capY, width + 12, capH, 6);
+            ctx.roundRect(cx - width/2 - 8, capY, width + 16, capH, 8);
             ctx.fill();
             
-            // Pulse effect cap
-            const pulse = (Math.sin(now * 0.01) + 1) * 0.3;
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + pulse})`;
+            const pulse = (Math.sin(now * 0.01) + 1) * 0.2;
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.85 + pulse})`;
             ctx.beginPath();
-            ctx.roundRect(cx - width/2 + 6, capY + 5, width - 12, capH - 10, 4);
+            ctx.roundRect(cx - width/2 + 8, capY + 6, width - 16, capH - 12, 4);
             ctx.fill();
         } else if (body.label === 'ground') {
             // Not explicitly drawn box for ground, but we could add a floor line
