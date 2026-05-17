@@ -1,8 +1,8 @@
-# ⚡ NEON FLAP
+# ⚡ NEON FLAP - 2026 EDITION
 
 **Survive the drift. Fly through the neon forest.**
 
-Neon Flap is a futuristic, high-octane reimagining of the classic "Flappy" genre. Built with a sleek vaporwave aesthetic, responsive physics, and progressive difficulty, it's designed to be played anywhere—from your desktop browser to your mobile home screen.
+Neon Flap is a futuristic, high-octane reimagining of the classic "Flappy" genre. Built with a sleek vaporwave aesthetic, responsive physics, and progressive difficulty, it's designed to be played anywhere—from your desktop browser to your mobile home screen. The **2026 Edition** brings enhanced performance, a brand new 2026-themed visual identity, and full offline support.
 
 ---
 

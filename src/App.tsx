@@ -92,6 +92,7 @@ export default function App() {
           <div className="flex items-center gap-2 text-[#00f2ff] opacity-80">
             <Zap size={14} fill="currentColor" />
             <span className="text-[10px] font-mono tracking-widest uppercase hidden sm:inline">Flux Engine Active</span>
+            <span className="text-[8px] bg-[#00f2ff]/20 text-[#00f2ff] px-1.5 py-0.5 rounded border border-[#00f2ff]/30 font-black tracking-tighter">2026 EDITION</span>
           </div>
           <div className="flex items-baseline gap-3 md:gap-4 relative">
             <div className={`text-2xl sm:text-3xl md:text-4xl font-mono font-bold tabular-nums tracking-tighter transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_15px_rgba(240,255,0,0.6)] animate-pulse' : ''}`}>
@@ -128,15 +129,27 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
           >
-            <motion.h1 
-              initial={{ y: 20 }}
-              animate={{ y: 0 }}
-              className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter mb-4 text-[#00f2ff] text-center px-4"
-              style={{ textShadow: '0 0 40px rgba(0, 242, 255, 0.4)' }}
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center mb-12"
             >
-              NEON FLAP
-            </motion.h1>
-            <p className="text-[#888] font-mono mb-12 uppercase tracking-[0.2em] sm:tracking-[0.3em] text-center text-[10px] sm:text-xs">Fly through the surge. Survive the grid.</p>
+              <div className="relative">
+                <h1 
+                  className="text-6xl sm:text-7xl md:text-9xl font-black italic tracking-tighter text-[#00f2ff] text-center px-4 leading-none"
+                  style={{ textShadow: '0 0 40px rgba(0, 242, 255, 0.4)' }}
+                >
+                  NEON FLAP
+                </h1>
+                <div className="absolute -top-4 -right-4 bg-[#ff0055] text-white px-2 py-1 rounded text-[10px] font-black tracking-tighter rotate-12 shadow-[0_0_20px_rgba(255,0,85,0.5)] border border-white/20">
+                  2026 EDITION
+                </div>
+              </div>
+              <p className="text-[#888] font-mono mt-4 uppercase tracking-[0.3em] text-center text-[10px] sm:text-xs">
+                Survive the surge. Master the grid.
+              </p>
+            </motion.div>
             
             <button 
               onClick={() => handleStateChange(GameState.PLAYING)}
@@ -147,15 +160,17 @@ export default function App() {
               <div className="absolute inset-0 rounded-full border-2 border-white scale-125 opacity-0 group-hover:opacity-20 group-hover:scale-110 transition-all" />
             </button>
 
-            {deferredPrompt && (
-              <button 
-                onClick={handleInstallClick}
-                className="mt-6 flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-full font-mono text-xs tracking-widest uppercase transition-all border border-white/5"
-              >
-                <Zap size={14} className="text-[#00f2ff]" />
-                Install Mobile App
-              </button>
-            )}
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              {deferredPrompt && (
+                <button 
+                  onClick={handleInstallClick}
+                  className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-full font-mono text-xs tracking-widest uppercase transition-all border border-white/5"
+                >
+                  <Zap size={14} className="text-[#00f2ff]" />
+                  Install App
+                </button>
+              )}
+            </div>
 
             <p className="mt-8 text-neutral-500 text-sm animate-pulse uppercase tracking-widest text-center px-4">Click or press SPACE to fly</p>
           </motion.div>
@@ -234,13 +249,15 @@ export default function App() {
                 </div>
               </div>
 
-              <button 
-                onClick={() => handleStateChange(GameState.PLAYING)}
-                className="flex items-center gap-3 bg-[#ff0055] text-white px-8 py-4 rounded-xl font-bold hover:shadow-[0_0_30px_rgba(255,0,85,0.4)] transition-all cursor-pointer text-sm sm:text-base"
-              >
-                <RotateCcw size={20} />
-                REBOOT SYSTEM
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => handleStateChange(GameState.PLAYING)}
+                  className="flex items-center gap-3 bg-[#ff0055] text-white px-8 py-4 rounded-xl font-bold hover:shadow-[0_0_30px_rgba(255,0,85,0.4)] transition-all cursor-pointer text-sm sm:text-base"
+                >
+                  <RotateCcw size={20} />
+                  REBOOT SYSTEM
+                </button>
+              </div>
 
               <button 
                 onClick={() => handleStateChange(GameState.START)}
