@@ -144,12 +144,12 @@ export default function App() {
                 >
                   2026 EDITION
                 </motion.div>
-                <h1 className="text-5xl xs:text-6xl sm:text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_40px_rgba(0,242,255,0.5)] leading-tight text-center">
+                <h1 className="text-4xl xs:text-5xl sm:text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_30px_rgba(0,242,255,0.4)] leading-none text-center">
                   NEON FLAP
                 </h1>
               </div>
-              <p className="text-white/40 text-[7px] xs:text-[8px] md:text-xs tracking-[0.4em] sm:tracking-[0.6em] text-center mt-3 sm:mt-6 font-black uppercase">
-                FLAP TO SURVIVE.
+              <p className="text-white/40 text-[7px] xs:text-[8px] md:text-xs tracking-[0.3em] sm:tracking-[0.6em] text-center mt-3 sm:mt-6 font-black uppercase max-w-[200px] sm:max-w-none">
+                PILOT THROUGH THE VOID.
               </p>
             </motion.div>
             
@@ -157,9 +157,9 @@ export default function App() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleStateChange(GameState.PLAYING)}
-              className="pointer-events-auto flex items-center justify-center gap-3 sm:gap-4 bg-white text-black w-full max-w-[240px] sm:max-w-[320px] py-4 sm:py-6 rounded-full font-black text-lg sm:text-xl tracking-tight shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all hover:bg-neutral-100 mb-6 sm:mb-8"
+              className="pointer-events-auto flex items-center justify-center gap-3 sm:gap-4 bg-white text-black w-full max-w-[220px] sm:max-w-[320px] py-4 sm:py-6 rounded-full font-black text-base sm:text-xl tracking-tight shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all hover:bg-neutral-100 mb-6 sm:mb-8"
             >
-              <Play size={20} className="sm:w-6 sm:h-6" fill="currentColor" />
+              <Play size={18} className="sm:w-6 sm:h-6" fill="currentColor" />
               INITIATE FLIGHT
             </motion.button>
 
@@ -199,25 +199,25 @@ export default function App() {
               animate={{ scale: 1, opacity: 1 }}
               className="flex flex-col items-center w-full max-w-sm"
             >
-              <h2 className="text-5xl sm:text-7xl font-black italic tracking-tighter text-white mb-2 leading-none text-center">SYSTEM PAUSED</h2>
+              <h2 className="text-4xl sm:text-7xl font-black italic tracking-tighter text-white mb-2 leading-none text-center">SYSTEM PAUSED</h2>
               
-              <div className="w-full h-px bg-white/10 my-8 sm:my-10" />
+              <div className="w-full h-px bg-white/10 my-6 sm:my-10" />
 
-              <div className="flex flex-col items-center mb-10 sm:mb-16">
+              <div className="flex flex-col items-center mb-8 sm:mb-16">
                 <span className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] text-white/30 mb-2">LIVE DATA SYNC</span>
-                <span className="text-4xl sm:text-6xl font-mono font-bold text-[#00f2ff] tabular-nums tracking-widest leading-none drop-shadow-[0_0_30px_rgba(0,242,255,0.4)]">
+                <span className="text-3xl sm:text-6xl font-mono font-bold text-[#00f2ff] tabular-nums tracking-widest leading-none drop-shadow-[0_0_30px_rgba(0,242,255,0.4)]">
                   {score.toString().padStart(6, '0')}
                 </span>
               </div>
 
-              <div className="flex flex-col gap-4 w-full">
+              <div className="flex flex-col gap-3 sm:gap-4 w-full">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleStateChange(GameState.PLAYING)}
-                  className="flex items-center justify-center gap-3 bg-[#00f2ff] text-black w-full py-5 sm:py-6 rounded-3xl font-black tracking-tight text-lg sm:text-xl shadow-[0_0_30px_rgba(0,242,255,0.3)] transition-all"
+                  className="flex items-center justify-center gap-3 bg-[#00f2ff] text-black w-full py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black tracking-tight text-base sm:text-xl shadow-[0_0_30px_rgba(0,242,255,0.3)] transition-all"
                 >
-                  <PlayCircle size={24} fill="currentColor" />
+                  <PlayCircle size={22} fill="currentColor" />
                   RESUME MISSION
                 </motion.button>
                 
@@ -228,9 +228,9 @@ export default function App() {
                     handleStateChange(GameState.START);
                     setTimeout(() => handleStateChange(GameState.PLAYING), 100);
                   }}
-                  className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 text-white w-full py-5 rounded-3xl font-black tracking-tight text-lg backdrop-blur-md transition-all hover:bg-white/10"
+                  className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 text-white w-full py-4 sm:py-5 rounded-2xl sm:rounded-3xl font-black tracking-tight text-base sm:text-lg backdrop-blur-md transition-all hover:bg-white/10"
                 >
-                  <RefreshCw size={22} />
+                  <RefreshCw size={20} />
                   RESTART CORE
                 </motion.button>
               </div>
@@ -257,16 +257,16 @@ export default function App() {
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="flex flex-col items-center w-full px-6"
+              className="flex flex-col items-center w-full px-6 max-w-sm"
             >
-              <h2 className="text-6xl md:text-8xl font-black italic tracking-tighter text-[#ff0055] mb-2 leading-none drop-shadow-[0_0_30px_rgba(255,0,85,0.4)]">
+              <h2 className="text-5xl sm:text-8xl font-black italic tracking-tighter text-[#ff0055] mb-2 leading-none drop-shadow-[0_0_30px_rgba(255,0,85,0.4)] text-center">
                 FLUX CRITICAL
               </h2>
-              <p className="text-white/40 text-[10px] md:text-sm tracking-[0.2em] uppercase font-bold mb-14">
+              <p className="text-white/40 text-[9px] sm:text-sm tracking-[0.2em] uppercase font-bold mb-10 sm:mb-14 text-center">
                 System synchronization failed
               </p>
 
-              <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-8 w-full max-w-sm mb-10 flex flex-col items-center relative overflow-hidden backdrop-blur-md">
+              <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 sm:p-8 w-full mb-10 flex flex-col items-center relative overflow-hidden backdrop-blur-md">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff0055]/50 to-transparent" />
                 
                 {isNewRecordReached && (
@@ -275,27 +275,27 @@ export default function App() {
                   </div>
                 )}
 
-                <div className="flex flex-col items-center mb-10">
-                  <span className="text-[10px] font-black tracking-[0.4em] text-white/20 uppercase mb-3">FINAL SCORE</span>
-                  <span className="text-7xl font-mono font-bold text-[#f0ff00] leading-none drop-shadow-[0_0_20px_rgba(240,255,0,0.4)]">{score}</span>
+                <div className="flex flex-col items-center mb-8 sm:mb-10 text-center">
+                  <span className="text-[9px] sm:text-[10px] font-black tracking-[0.4em] text-white/20 uppercase mb-3">FINAL SCORE</span>
+                  <span className="text-5xl sm:text-7xl font-mono font-bold text-[#f0ff00] leading-none drop-shadow-[0_0_20px_rgba(240,255,0,0.4)]">{score.toString().padStart(6, '0')}</span>
                 </div>
                 
-                <div className="w-full h-px bg-white/5 mb-8" />
+                <div className="w-full h-px bg-white/5 mb-6 sm:mb-8" />
                 
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center text-center">
                   <div className="flex items-center gap-2 mb-2">
                     <Trophy size={14} className="text-white/20" />
-                    <span className="text-[10px] font-black tracking-[0.4em] text-white/25 uppercase">GLOBAL BEST</span>
+                    <span className="text-[9px] sm:text-[10px] font-black tracking-[0.4em] text-white/25 uppercase">GLOBAL BEST</span>
                   </div>
-                  <span className="text-2xl font-mono font-bold text-white/40 leading-none tracking-widest">{highScore.toString().padStart(6, '0')}</span>
+                  <span className="text-xl sm:text-2xl font-mono font-bold text-white/40 leading-none tracking-widest">{highScore.toString().padStart(6, '0')}</span>
                 </div>
               </div>
 
               <button
                 onClick={() => handleStateChange(GameState.PLAYING)}
-                className="flex items-center justify-center gap-4 bg-[#ff0055] text-white px-14 py-6 rounded-2xl font-black text-xl tracking-tight shadow-[0_0_50px_rgba(255,0,85,0.4)] hover:scale-105 active:scale-95 transition-all w-full max-w-[280px]"
+                className="flex items-center justify-center gap-4 bg-[#ff0055] text-white w-full py-5 sm:py-6 rounded-2xl font-black text-lg sm:text-xl tracking-tight shadow-[0_0_50px_rgba(255,0,85,0.4)] hover:scale-105 active:scale-95 transition-all"
               >
-                <RefreshCw size={24} />
+                <RefreshCw size={22} className="sm:w-6 sm:h-6" />
                 REBOOT SYSTEM
               </button>
 

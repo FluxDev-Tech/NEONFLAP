@@ -209,51 +209,56 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             // 1. Core Body (Bright Yellow-Cyan Neon)
             ctx.fillStyle = '#f0ff00';
             ctx.beginPath();
-            // Aerodynamic flappy-style body
-            ctx.ellipse(0, 0, 26, 20, 0, 0, Math.PI * 2);
+            // Aerodynamic flappy-style body with cleaner curves
+            ctx.moveTo(-22, -8);
+            ctx.quadraticCurveTo(0, -22, 22, -6); // Top
+            ctx.lineTo(34, 0); // Beak tip
+            ctx.lineTo(22, 10); // Bottom beak
+            ctx.quadraticCurveTo(0, 22, -22, 10); // Bottom
+            ctx.closePath();
             ctx.fill();
+            
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // 2. Iconic Beak (Neon Pink)
+            // 2. High-tech "Visor" Eye
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.ellipse(10, -5, 8, 5, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(14, -6, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3. Iconic Beak Detail
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(22, 2);
+            ctx.lineTo(34, 0);
+            ctx.stroke();
+
+            // 4. Energy Core Thruster (Tail)
             ctx.fillStyle = '#ff0055';
             ctx.beginPath();
-            ctx.moveTo(18, -4);
-            ctx.lineTo(36, 4);
-            ctx.lineTo(18, 12);
+            ctx.moveTo(-20, -5);
+            ctx.lineTo(-32, 0);
+            ctx.lineTo(-20, 5);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
-
-            // 3. Large expressive Eye
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(12, -7, 9, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = '#000000';
-            ctx.beginPath();
-            ctx.arc(16, -7, 4, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 4. Integrated Energy Core (Tail instead of wings)
-            ctx.fillStyle = '#00f2ff';
-            ctx.beginPath();
-            ctx.moveTo(-18, -8);
-            ctx.lineTo(-30, 0);
-            ctx.lineTo(-18, 8);
-            ctx.closePath();
-            ctx.fill();
             
             // 5. Overall Glow Halo
             ctx.shadowBlur = 0;
-            const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 45);
-            glow.addColorStop(0, 'rgba(0, 242, 255, 0.2)');
+            const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 48);
+            glow.addColorStop(0, 'rgba(0, 242, 255, 0.25)');
             glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
             ctx.fillStyle = glow;
             ctx.beginPath();
-            ctx.arc(0, 0, 45, 0, Math.PI * 2);
+            ctx.arc(0, 0, 48, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.restore();
