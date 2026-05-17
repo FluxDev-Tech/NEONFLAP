@@ -204,27 +204,33 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.rotate(velocityRot);
 
             if (birdImg.current) {
-                // Perfect Orb Masking
+                // Perfect Orb Core Rendering - Absolute box-killer logic
                 ctx.save();
+                
+                // 1. Core Clipping - slightly smaller than sprite to shave off edge artifacts
                 ctx.beginPath();
-                ctx.arc(0, 0, (size/2) - 8, 0, Math.PI * 2);
+                ctx.arc(0, 0, (size/2) - 12, 0, Math.PI * 2);
                 ctx.clip();
                 
+                // 2. High-intensity Screen Blend
                 ctx.globalCompositeOperation = 'screen';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
+                
                 ctx.restore();
 
-                // Core Pulse
+                // 3. Post-Process Bloom Halo - Seals the "Core" identity
+                ctx.save();
                 const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
-                glow.addColorStop(0, 'rgba(0, 242, 255, 0.7)');
-                glow.addColorStop(0.4, 'rgba(0, 242, 255, 0.2)');
+                glow.addColorStop(0, 'rgba(0, 242, 255, 0.8)');
+                glow.addColorStop(0.3, 'rgba(0, 242, 255, 0.3)');
                 glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
                 
                 ctx.globalCompositeOperation = 'screen';
                 ctx.fillStyle = glow;
                 ctx.beginPath();
-                ctx.arc(0, 0, size * 0.6, 0, Math.PI * 2);
+                ctx.arc(0, 0, size * 0.7, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.restore();
             }
             ctx.restore();
         } else if (body.label === 'obstacle') {

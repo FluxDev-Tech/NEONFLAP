@@ -52,26 +52,22 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState]);
 
-  // Real-time record detection
-  useEffect(() => {
-    if (score > highScore && highScore > 0 && gameState === GameState.PLAYING) {
-      if (!isNewRecordReached) {
-        setIsNewRecordReached(true);
-        soundManager.playLevelUp();
-      }
-    }
-  }, [score, highScore, isNewRecordReached, gameState]);
-
+  // Real-time record detection removed from here and moved into handleScoreUpdate for atomic sync
+  
   const handleScoreUpdate = useCallback((newScore: number) => {
     scoreRef.current = newScore;
     setScore(newScore);
     
-    // Auto-update highscore in real-time
+    // Atomic update for "ONE BEST SCORE" logic
     if (newScore > highScore) {
+      if (!isNewRecordReached && highScore > 0) {
+        setIsNewRecordReached(true);
+        soundManager.playLevelUp();
+      }
       setHighScore(newScore);
       localStorage.setItem('neon-flap-highscore', newScore.toString());
     }
-  }, [highScore]);
+  }, [highScore, isNewRecordReached]);
 
   const handleStateChange = useCallback((newState: GameState) => {
     // Handling restarts from game-over or manual restart in pause
@@ -107,11 +103,11 @@ export default function App() {
             
             {isNewRecordReached && (
               <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="absolute -right-24 top-6 text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-2 py-0.5 rounded border border-[#f0ff00]/20 rotate-12"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute -right-24 top-6 text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-2 py-1 rounded border border-[#f0ff00]/20 rotate-12 drop-shadow-[0_0_10px_rgba(240,255,0,0.5)]"
               >
-                RECORD SYNCED
+                NEW BEST REACHED!
               </motion.div>
             )}
 
@@ -174,11 +170,23 @@ export default function App() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleStateChange(GameState.PLAYING)}
-              className="pointer-events-auto flex items-center gap-4 bg-white text-black px-12 py-6 rounded-full font-black text-xl tracking-tight shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all hover:bg-neutral-100"
+              className="pointer-events-auto flex items-center gap-4 bg-white text-black px-12 py-6 rounded-full font-black text-xl tracking-tight shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all hover:bg-neutral-100 mb-8"
             >
               <Play size={24} fill="currentColor" />
               INITIATE FLIGHT
             </motion.button>
+
+            {deferredPrompt && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={handleInstallClick}
+                className="pointer-events-auto flex items-center gap-2 text-white/50 hover:text-white transition-colors text-[10px] uppercase font-black tracking-[0.4em] mb-4"
+              >
+                <Zap size={14} className="text-[#00f2ff]" />
+                INSTALL CORE SYSTEM
+              </motion.button>
+            )}
 
             <p className="absolute bottom-20 text-white/20 text-[10px] tracking-[0.5em] font-black uppercase animate-pulse">
               CLICK OR PRESS SPACE TO FLY
@@ -257,6 +265,12 @@ export default function App() {
               <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-8 w-full max-w-sm mb-10 flex flex-col items-center relative overflow-hidden backdrop-blur-md">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff0055]/50 to-transparent" />
                 
+                {isNewRecordReached && (
+                  <div className="absolute top-4 right-4 bg-[#f0ff00] text-black text-[7px] font-black px-2 py-0.5 rounded uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(240,255,0,0.4)]">
+                    NEW RECORD
+                  </div>
+                )}
+
                 <div className="flex flex-col items-center mb-10">
                   <span className="text-[10px] font-black tracking-[0.4em] text-white/20 uppercase mb-3">FINAL SCORE</span>
                   <span className="text-7xl font-mono font-bold text-[#f0ff00] leading-none drop-shadow-[0_0_20px_rgba(240,255,0,0.4)]">{score}</span>
