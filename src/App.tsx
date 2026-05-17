@@ -103,43 +103,44 @@ export default function App() {
         />
       </div>
 
-      {/* HUD */}
-      <div className="absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-8 flex justify-between items-start z-10 pointer-events-none">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 text-[#00f2ff] opacity-80">
-            <Zap size={14} fill="currentColor" />
-            <span className="text-[10px] font-mono tracking-widest uppercase hidden sm:inline">Flux Engine Active</span>
-            <span className="text-[8px] bg-[#00f2ff]/20 text-[#00f2ff] px-1.5 py-0.5 rounded border border-[#00f2ff]/30 font-black tracking-tighter">2026 EDITION</span>
+      <div className="absolute top-6 left-6 z-10 pointer-events-none select-none">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1.5 text-[#00f2ff] opacity-60 mb-1">
+            <Zap size={10} fill="currentColor" />
+            <span className="text-[8px] font-black tracking-[0.2em] uppercase">2026 EDITION</span>
           </div>
           <div className="flex flex-col relative">
-            <div className={`text-2xl sm:text-4xl font-mono font-bold tabular-nums tracking-tighter transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_15px_rgba(240,255,0,0.6)] animate-pulse' : ''}`}>
+            <div className={`text-4xl sm:text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white'}`}>
               {score.toString().padStart(6, '0')}
             </div>
-            <div className="flex flex-col mt-0.5 opacity-50">
-              <span className="text-[7px] uppercase font-black tracking-[0.2em] leading-none mb-0.5">Best Score</span>
-              <span className="text-[10px] sm:text-xs font-mono font-bold leading-none tabular-nums">
+            
+            <div className="flex flex-col mt-2 ml-0.5">
+              <span className="text-[8px] uppercase font-black tracking-[0.3em] text-white/30 leading-none mb-1">Best</span>
+              <span className="text-xs sm:text-sm font-mono font-bold text-white/40 tabular-nums leading-none">
                 {displayedBest.toString().padStart(6, '0')}
               </span>
             </div>
+
             {isNewRecordReached && (
               <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="absolute -right-16 top-0 text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-1.5 py-0.5 rounded border border-[#f0ff00]/30"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute -right-4 top-10 text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-2 py-0.5 rounded border border-[#f0ff00]/30 rotate-12"
               >
-                New Best
+                Record Broken
               </motion.div>
             )}
           </div>
         </div>
+      </div>
 
+      <div className="absolute top-6 right-6 z-10 pointer-events-none">
         {gameState === GameState.PLAYING && (
           <button 
             onClick={() => handleStateChange(GameState.PAUSED)}
-            className="pointer-events-auto bg-white/5 hover:bg-white/10 p-3 md:p-4 rounded-full border border-white/10 transition-colors backdrop-blur-sm group"
-            title="Pause (P)"
+            className="pointer-events-auto bg-white/5 hover:bg-white/10 p-4 rounded-full border border-white/10 transition-colors backdrop-blur-md group"
           >
-            <Pause size={20} className="text-white md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
+            <Pause size={20} className="text-white group-hover:scale-110 transition-transform" />
           </button>
         )}
       </div>

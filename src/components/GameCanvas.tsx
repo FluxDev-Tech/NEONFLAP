@@ -206,21 +206,22 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
             if (birdImg.current) {
                 ctx.save();
-                // Create a circular clipping path to remove corners if the image has a black box
+                // Extremely tight circular clipping path to remove any box edges
                 ctx.beginPath();
-                ctx.arc(0, 0, size/2 - 5, 0, Math.PI * 2);
+                ctx.arc(0, 0, size/2 - 7, 0, Math.PI * 2);
                 ctx.clip();
                 
-                // Draw the bird
+                // Screen composite to blend neon highlights
+                ctx.globalCompositeOperation = 'screen';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
                 ctx.restore();
                 
-                // Add a subtle outer glow to unify the bird with the neon aesthetic
+                // Outer core glow for better integration
                 ctx.save();
                 ctx.globalCompositeOperation = 'screen';
                 ctx.beginPath();
-                const glow = ctx.createRadialGradient(0, 0, size/3, 0, 0, size/2);
-                glow.addColorStop(0, 'rgba(0, 242, 255, 0.2)');
+                const glow = ctx.createRadialGradient(0, 0, size/4, 0, 0, size/2);
+                glow.addColorStop(0, 'rgba(0, 242, 255, 0.4)');
                 glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
                 ctx.fillStyle = glow;
                 ctx.arc(0, 0, size/2, 0, Math.PI * 2);

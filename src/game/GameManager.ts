@@ -97,7 +97,7 @@ export class GameManager {
 
     // Create flappy pipes
     const gapSize = 320; 
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 200; i++) {
         const x = 900 + i * 750; 
         const minH = 60;
         const maxH = height - gapSize - minH;
@@ -143,7 +143,7 @@ export class GameManager {
     }
 
     // Win trigger
-    const winTrigger = Matter.Bodies.rectangle(900 + 40 * 750 + 1000, height / 2, 100, height, {
+    const winTrigger = Matter.Bodies.rectangle(900 + 200 * 750 + 1000, height / 2, 100, height, {
         isStatic: true,
         isSensor: true,
         label: 'win'
