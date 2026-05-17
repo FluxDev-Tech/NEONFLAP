@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import { GameManager, GameState } from '../game/GameManager';
 import { soundManager } from '../game/SoundManager';
 
@@ -8,7 +8,7 @@ interface GameCanvasProps {
   gameState: GameState;
 }
 
-export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: GameCanvasProps) {
+export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const managerRef = useRef<GameManager | null>(null);
@@ -19,9 +19,11 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
-        setDimensions({
-          width: containerRef.current.clientWidth,
-          height: containerRef.current.clientHeight
+        const newWidth = containerRef.current.clientWidth;
+        const newHeight = containerRef.current.clientHeight;
+        setDimensions(prev => {
+            if (prev.width === newWidth && prev.height === newHeight) return prev;
+            return { width: newWidth, height: newHeight };
         });
       }
     };
@@ -62,15 +64,14 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
     const render = () => {
       if (!ctx || !manager) return;
       
-      manager.update();
+      const now = Date.now();
+      // Manual step for perfect sync and performance
+      manager.step(16.66);
 
       // Trigger shake on score increase removed for performance and smooth movement
       if (manager.score > lastScoreRef.current) {
           lastScoreRef.current = manager.score;
       }
-      
-      const shakeX = 0;
-      const shakeY = 0;
       
       // Deep Background sky
       ctx.fillStyle = '#050510';
@@ -78,45 +79,30 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
 
       const playerX = manager.player?.position.x || 0;
 
-      // Draw Parallax Forest
+      // Draw Parallax Forest (Optimized)
       if (forestImg.current) {
-        // We use the same image for layers but with different properties
-        const forestWidth = dimensions.height * (16/9) * 2; // Scaled up for wider view
         const forestHeight = dimensions.height;
+        const forestWidth = forestHeight * (16/9); 
         
-        // Background layer (slowest, deep purple tint)
-        const bgParallax = 0.05;
-        const bgOffset = -(playerX * bgParallax) % forestWidth;
-        
-        ctx.save();
-        ctx.globalAlpha = 0.15;
-        // High-performance drawing without expensive filters
-        for (let i = -1; i <= 1; i++) {
-            ctx.drawImage(forestImg.current, bgOffset + (i * forestWidth), -50, forestWidth, forestHeight + 100);
-        }
-        ctx.restore();
+        const drawParallaxLayer = (parallax: number, alpha: number, yOffset: number, scale: number = 1) => {
+            const scaledWidth = forestWidth * scale;
+            const offset = -(playerX * parallax) % scaledWidth;
+            ctx.globalAlpha = alpha;
+            
+            // Draw 3 tiles to cover all edge cases during high-speed movement
+            ctx.drawImage(forestImg.current, offset - scaledWidth, yOffset, scaledWidth, forestHeight * scale);
+            ctx.drawImage(forestImg.current, offset, yOffset, scaledWidth, forestHeight * scale);
+            ctx.drawImage(forestImg.current, offset + scaledWidth, yOffset, scaledWidth, forestHeight * scale);
+        };
 
-        // Midground layer (medium speed)
-        const mgParallax = 0.15;
-        const mgOffset = -(playerX * mgParallax) % forestWidth;
-        
-        ctx.save();
-        ctx.globalAlpha = 0.35;
-        for (let i = -1; i <= 1; i++) {
-            ctx.drawImage(forestImg.current, mgOffset + (i * forestWidth), 0, forestWidth, forestHeight);
-        }
-        ctx.restore();
+        // Deep layer
+        drawParallaxLayer(0.05, 0.12, -50, 2);
+        // Mid layer
+        drawParallaxLayer(0.15, 0.3, 0);
+        // Fore layer
+        drawParallaxLayer(0.4, 0.06, -100, 1.3);
 
-        // Foreground layer (fastest, close trees)
-        const fgParallax = 0.4;
-        const fgOffset = -(playerX * fgParallax) % forestWidth;
-        
-        ctx.save();
-        ctx.globalAlpha = 0.1;
-        for (let i = -1; i <= 1; i++) {
-            ctx.drawImage(forestImg.current, fgOffset + (i * forestWidth), -100, forestWidth * 1.3, forestHeight * 1.3);
-        }
-        ctx.restore();
+        ctx.globalAlpha = 1.0;
       }
 
       // Camera logic: follow player
@@ -176,55 +162,65 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             ctx.lineTo(body.position.x, dimensions.height);
             ctx.stroke();
         } else if (body.label === 'player') {
-            const size = 55;
-            const flapY = Math.sin(Date.now() * 0.02) * 5;
-            flapAnimRef.current *= 0.9;
+            const size = 62;
+            const time = now * 0.004;
+            // Subtle idle sway (vertical and rotational)
+            const swayY = Math.sin(time) * 4;
+            const swayRot = Math.sin(time * 0.8) * 0.05;
+            
+            const flapY = Math.sin(now * 0.015) * 8; 
+            flapAnimRef.current *= 0.88;
             
             ctx.save();
-            ctx.translate(body.position.x, body.position.y);
+            ctx.translate(body.position.x, body.position.y + swayY);
             
-            // Body rotation based on velocity
-            const rotation = Math.max(-0.4, Math.min(0.8, body.velocity.y * 0.08));
-            ctx.rotate(rotation);
+            // Smoother rotation based on velocity + sway
+            const velocityRot = Math.max(-0.4, Math.min(0.6, body.velocity.y * 0.05));
+            ctx.rotate(velocityRot + swayRot);
 
             if (birdImg.current) {
-                // High-performance image drawing (no shadows)
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
-            } else {
-                ctx.beginPath();
-                ctx.fillStyle = '#00f2ff';
-                ctx.arc(0, 0, 18, 0, Math.PI * 2);
-                ctx.fill();
             }
 
-            // Wing animation (simplified/efficient)
+            // Enhanced Wing Animation
             ctx.beginPath();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            const wingWidth = 20;
-            const wingHeight = 12;
-            const flapOffset = flapAnimRef.current > 0.1 ? -12 : flapY;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            const wingWidth = 26;
+            const wingHeight = 15;
+            const flapOffset = flapY + (body.velocity.y > 0 ? 4 : -4);
             
-            ctx.ellipse(-5, flapOffset, wingWidth / 2, wingHeight / 2, -0.2, 0, Math.PI * 2);
+            ctx.ellipse(-10, flapOffset, wingWidth / 2, wingHeight / 2, -0.3, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         } else if (body.label === 'obstacle') {
             const vertices = body.vertices;
             const width = Math.abs(vertices[1].x - vertices[0].x);
             const height = Math.abs(vertices[2].y - vertices[0].y);
-            const cx = (vertices[0].x + vertices[2].x) / 2;
+            const cx = (vertices[0].x + vertices[1].x) / 2;
             const cy = (vertices[0].y + vertices[2].y) / 2;
 
             const isTopPipe = cy < dimensions.height / 2;
 
-            // Pillar Solid Style for performance
-            ctx.fillStyle = '#1a0008';
+            // Pillar Body - Crimson Red
+            ctx.fillStyle = '#2a0000';
             ctx.fillRect(cx - width/2, cy - height/2, width, height);
             
+            // Neon Red Highlights
+            ctx.strokeStyle = '#ff0033';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cx - width/2, cy - height/2, width, height);
+
             // Energy Tip
             const capHeight = 10;
             const tipY = isTopPipe ? (cy + height/2 - capHeight) : (cy - height/2);
-            ctx.fillStyle = '#ffffff';
+            
+            // Glowing tip core
+            ctx.fillStyle = '#ff0033';
             ctx.fillRect(cx - width/2 - 2, tipY, width + 4, capHeight);
+            
+            // White hot energy center
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(cx - width/2 + 5, tipY + 2, width - 10, capHeight - 4);
         } else if (body.label === 'ground') {
             // Not explicitly drawn box for ground, but we could add a floor line
         }
@@ -288,4 +284,4 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
       />
     </div>
   );
-}
+});

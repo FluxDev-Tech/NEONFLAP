@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameState } from './game/GameManager';
 import GameCanvas from './components/GameCanvas';
@@ -58,22 +58,25 @@ export default function App() {
     }
   }, [score, highScore, isNewRecordReached, gameState]);
 
-  const handleStateChange = (newState: GameState) => {
+  const handleStateChange = useCallback((newState: GameState) => {
     setGameState(newState);
     if (newState === GameState.PLAYING) {
       setIsNewRecordReached(false);
     }
     if (newState === GameState.GAME_OVER || newState === GameState.WIN) {
-      if (score > 0) {
-        const newScores = [...highScores, score]
-          .filter((s, i, self) => self.indexOf(s) === i) // Dedupe
-          .sort((a, b) => b - a)
-          .slice(0, 5);
-        setHighScores(newScores);
-        localStorage.setItem('neon-flap-highscores', JSON.stringify(newScores));
-      }
+      setHighScores(prev => {
+          if (score > 0) {
+            const newScores = [...prev, score]
+              .filter((s, i, self) => self.indexOf(s) === i) // Dedupe
+              .sort((a, b) => b - a)
+              .slice(0, 5);
+            localStorage.setItem('neon-flap-highscores', JSON.stringify(newScores));
+            return newScores;
+          }
+          return prev;
+      });
     }
-  };
+  }, [score]);
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] text-white font-sans overflow-hidden select-none">
@@ -127,7 +130,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/85"
           >
             <motion.div 
               initial={{ y: 20, opacity: 0 }}
@@ -182,7 +185,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/70"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
@@ -214,7 +217,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#1a0007]/90 backdrop-blur-md"
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#1a0007]/95"
           >
             <motion.div 
               initial={{ scale: 0.8 }}
@@ -277,7 +280,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#001a0a]/90 backdrop-blur-md"
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#001a0a]/95"
           >
             <motion.div 
               initial={{ scale: 0.8 }}

@@ -46,8 +46,8 @@ export class GameManager {
     // Player (Bird)
     this.player = Matter.Bodies.rectangle(100, height / 2, 40, 30, {
       friction: 0.0001,
-      frictionAir: 0.03, // Added slightly more air resistance for smoother control
-      restitution: 0.4, 
+      frictionAir: 0.04, // Slightly more air resistance for better control
+      restitution: 0.3, 
       density: 0.001,
       label: 'player',
       render: { fillStyle: '#00f2ff' }
@@ -60,15 +60,15 @@ export class GameManager {
     Matter.World.add(this.world, [this.player, ground, ceiling]);
 
     // Create flappy pipes
-    const gapSize = 250; // Further increased gap for easier gameplay
-    for (let i = 0; i < 50; i++) {
-        const x = 800 + i * 650; // Even more space between pipes (from 500 to 650)
-        const minH = 50;
+    const gapSize = 300; // Even larger gap for easy gameplay
+    for (let i = 0; i < 40; i++) {
+        const x = 900 + i * 700; // More space between pipes
+        const minH = 60;
         const maxH = height - gapSize - minH;
         const topPipeH = minH + Math.random() * maxH;
         
         // Top Pipe
-        const topPipe = Matter.Bodies.rectangle(x, topPipeH / 2, 60, topPipeH, { 
+        const topPipe = Matter.Bodies.rectangle(x, topPipeH / 2, 80, topPipeH, { 
             isStatic: true, 
             label: 'obstacle',
             render: { fillStyle: '#ff0055' }
@@ -76,7 +76,7 @@ export class GameManager {
         
         // Bottom Pipe
         const bottomPipeH = height - topPipeH - gapSize;
-        const bottomPipe = Matter.Bodies.rectangle(x, height - bottomPipeH / 2, 60, bottomPipeH, { 
+        const bottomPipe = Matter.Bodies.rectangle(x, height - bottomPipeH / 2, 80, bottomPipeH, { 
             isStatic: true, 
             label: 'obstacle',
             render: { fillStyle: '#ff0055' }
@@ -107,7 +107,7 @@ export class GameManager {
     }
 
     // Win trigger
-    const winTrigger = Matter.Bodies.rectangle(600 + 50 * 550 + 500, height / 2, 100, height, {
+    const winTrigger = Matter.Bodies.rectangle(900 + 40 * 700 + 1000, height / 2, 100, height, {
         isStatic: true,
         isSensor: true,
         label: 'win'
@@ -149,11 +149,7 @@ export class GameManager {
   public setGameState(state: GameState) {
     this.gameState = state;
     this.onStateChange(state);
-    if (state === GameState.PLAYING) {
-      Matter.Runner.run(this.runner, this.engine);
-    } else {
-      Matter.Runner.stop(this.runner);
-    }
+    // Physics is manually stepped in the render loop for synchronization and performance
   }
 
   public flap() {
@@ -161,7 +157,7 @@ export class GameManager {
     Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -8.5 });
   }
 
-  public update() {
+  public step(delta: number) {
     if (this.gameState === GameState.PLAYING && this.player) {
       // Fast, responsive speed
       const baseSpeed = 4.2; 
@@ -171,11 +167,14 @@ export class GameManager {
       // Consistent forward velocity
       Matter.Body.setVelocity(this.player, { x: currentSpeed, y: this.player.velocity.y });
       
-      // Horizontal bounds (don't really need but for safety)
+      // Horizontal bounds
       if (this.player.position.y > 2000 || this.player.position.y < -1000) {
           this.setGameState(GameState.GAME_OVER);
           soundManager.playGameOver();
       }
+
+      // Step physics engine
+      Matter.Engine.update(this.engine, delta);
     }
   }
 }
