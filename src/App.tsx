@@ -60,6 +60,7 @@ export default function App() {
     
     // Atomic update for "ONE BEST SCORE" logic
     if (newScore > highScore) {
+      // Trigger new record state if we just surpassed the old high score
       if (!isNewRecordReached && highScore > 0) {
         setIsNewRecordReached(true);
         soundManager.playLevelUp();
@@ -178,13 +179,18 @@ export default function App() {
 
             {deferredPrompt && (
               <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleInstallClick}
-                className="pointer-events-auto flex items-center gap-2 text-white/50 hover:text-white transition-colors text-[9px] sm:text-[10px] uppercase font-black tracking-[0.4em] mb-8"
+                className="pointer-events-auto flex flex-col items-center gap-2 bg-[#00f2ff]/10 border border-[#00f2ff]/30 px-8 py-4 rounded-2xl mb-8 group transition-all hover:bg-[#00f2ff]/20"
               >
-                <RefreshCw size={14} className="text-[#00f2ff] animate-spin-slow" />
-                INSTALL CORE SYSTEM
+                <div className="flex items-center gap-2">
+                  <RefreshCw size={16} className="text-[#00f2ff] animate-spin-slow group-hover:rotate-180 transition-transform duration-500" />
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-[#00f2ff]">INSTALL SYSTEM</span>
+                </div>
+                <span className="text-[7px] text-white/40 uppercase tracking-widest font-bold">READY FOR DEPLOYMENT</span>
               </motion.button>
             )}
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neon-flap-v2';
+const CACHE_NAME = 'neon-flap-v3';
 const ASSETS = [
   '/',
   '/index.html',

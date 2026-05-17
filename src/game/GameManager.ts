@@ -95,11 +95,11 @@ export class GameManager {
     
     Matter.World.add(this.world, [this.player, ground, ceiling]);
 
-    // Create flappy pipes
-    const gapSize = 320; 
+    // Create flappy pipes with dynamic gaps for various screen heights
+    const gapSize = Math.min(340, Math.max(200, height * 0.45)); 
     for (let i = 0; i < 200; i++) {
         const x = 900 + i * 750; 
-        const minH = 60;
+        const minH = 80;
         const maxH = height - gapSize - minH;
         const topPipeH = minH + Math.random() * maxH;
         

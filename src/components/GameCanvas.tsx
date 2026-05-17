@@ -204,33 +204,36 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.rotate(velocityRot);
 
             if (birdImg.current) {
-                // Perfect Orb Core Rendering - Absolute box-killer logic
+                // Perfect Orb Core Rendering - Ultimate "Box" Eradication
                 ctx.save();
                 
-                // 1. Extreme Clipping - Shave deep to hide edges
+                // 1. Deep Aggressive Clipping (16px shave)
                 ctx.beginPath();
-                ctx.arc(0, 0, (size/2) - 14, 0, Math.PI * 2);
+                ctx.arc(0, 0, (size/2) - 16, 0, Math.PI * 2);
                 ctx.clip();
                 
-                // 2. High-intensity Screen Blend
+                // 2. High-contrast Screen Blend
+                ctx.filter = 'contrast(1.8) brightness(1.2)';
                 ctx.globalCompositeOperation = 'screen';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
                 
                 ctx.restore();
 
-                // 3. Post-Process Bloom Halo - Seals the "Core" identity
+                // 3. Post-Process Bloom Seals
                 ctx.save();
                 const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
-                glow.addColorStop(0, 'rgba(0, 242, 255, 0.9)');
-                glow.addColorStop(0.2, 'rgba(0, 242, 255, 0.4)');
+                glow.addColorStop(0, 'rgba(0, 242, 255, 0.95)');
+                glow.addColorStop(0.25, 'rgba(0, 242, 255, 0.4)');
                 glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
                 
                 ctx.globalCompositeOperation = 'screen';
                 ctx.fillStyle = glow;
                 ctx.beginPath();
-                ctx.arc(0, 0, size * 0.75, 0, Math.PI * 2);
+                ctx.arc(0, 0, size * 0.8, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
+                
+                ctx.filter = 'none';
             }
             ctx.restore();
         } else if (body.label === 'obstacle') {
