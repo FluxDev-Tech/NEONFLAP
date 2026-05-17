@@ -90,14 +90,14 @@ export default function App() {
         />
       </div>
 
-      <div className="absolute top-8 left-8 z-10 pointer-events-none select-none">
+      <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-40 pointer-events-none select-none">
         <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 text-[#00f2ff] opacity-40 mb-1">
+          <div className="flex items-center gap-1.5 text-[#00f2ff] opacity-60 mb-1">
             <Zap size={10} fill="currentColor" />
-            <span className="text-[8px] font-black tracking-[0.3em] uppercase">2026 EDITION</span>
+            <span className="text-[7px] font-black tracking-widest uppercase">NODE-SYNC ACTIVE</span>
           </div>
           <div className="flex flex-col">
-            <div className={`text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/90'}`}>
+            <div className={`text-4xl sm:text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/95'}`}>
               {score.toString().padStart(6, '0')}
             </div>
             
@@ -105,15 +105,15 @@ export default function App() {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="absolute -right-24 top-6 text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-2 py-1 rounded border border-[#f0ff00]/20 rotate-12 drop-shadow-[0_0_10px_rgba(240,255,0,0.5)]"
+                className="absolute -right-20 sm:-right-24 top-5 sm:top-6 text-[7px] sm:text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border border-[#f0ff00]/20 rotate-12 drop-shadow-[0_0_10px_rgba(240,255,0,0.5)]"
               >
-                NEW BEST REACHED!
+                BEST SYNCED
               </motion.div>
             )}
 
-            <div className="flex flex-col mt-2 ml-1 opacity-30">
-              <span className="text-[7px] uppercase font-black tracking-[0.4em] leading-none mb-1">BEST</span>
-              <span className="text-sm font-mono font-bold leading-none tabular-nums">
+            <div className="flex flex-col mt-1 ml-1 opacity-40">
+              <span className="text-[6px] uppercase font-black tracking-[0.4em] leading-none mb-1">BEST</span>
+              <span className="text-xs font-mono font-bold leading-none tabular-nums">
                 {displayedBest.toString().padStart(6, '0')}
               </span>
             </div>
@@ -140,28 +140,28 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md p-6"
           >
             <motion.div 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.6 }}
-              className="flex flex-col items-center mb-16 relative"
+              className="flex flex-col items-center mb-8 xs:mb-12 sm:mb-16 relative w-full"
             >
               <div className="relative">
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="absolute -top-6 -right-12 bg-[#ff0055] text-white text-[10px] font-black px-3 py-1.5 rounded skew-x-[-12deg] tracking-widest shadow-[0_0_20px_rgba(255,0,85,0.6)] z-10 border border-white/20"
+                  className="absolute -top-3 -right-6 sm:-top-6 sm:-right-12 bg-[#ff0055] text-white text-[7px] sm:text-[10px] font-black px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded skew-x-[-12deg] tracking-widest shadow-[0_0_20px_rgba(255,0,85,0.6)] z-10 border border-white/20 whitespace-nowrap"
                 >
                   2026 EDITION
                 </motion.div>
-                <h1 className="text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_40px_rgba(0,242,255,0.5)]">
+                <h1 className="text-5xl xs:text-6xl sm:text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_40px_rgba(0,242,255,0.5)] leading-tight text-center">
                   NEON FLAP
                 </h1>
               </div>
-              <p className="text-white/40 text-[10px] md:text-xs tracking-[0.6em] text-center mt-6 font-black uppercase">
+              <p className="text-white/40 text-[7px] xs:text-[8px] md:text-xs tracking-[0.4em] sm:tracking-[0.6em] text-center mt-3 sm:mt-6 font-black uppercase">
                 SURVIVE THE SURGE. MASTER THE GRID.
               </p>
             </motion.div>
@@ -170,9 +170,9 @@ export default function App() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleStateChange(GameState.PLAYING)}
-              className="pointer-events-auto flex items-center gap-4 bg-white text-black px-12 py-6 rounded-full font-black text-xl tracking-tight shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all hover:bg-neutral-100 mb-8"
+              className="pointer-events-auto flex items-center justify-center gap-3 sm:gap-4 bg-white text-black w-full max-w-[240px] sm:max-w-[320px] py-4 sm:py-6 rounded-full font-black text-lg sm:text-xl tracking-tight shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all hover:bg-neutral-100 mb-6 sm:mb-8"
             >
-              <Play size={24} fill="currentColor" />
+              <Play size={20} className="sm:w-6 sm:h-6" fill="currentColor" />
               INITIATE FLIGHT
             </motion.button>
 
@@ -181,15 +181,15 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={handleInstallClick}
-                className="pointer-events-auto flex items-center gap-2 text-white/50 hover:text-white transition-colors text-[10px] uppercase font-black tracking-[0.4em] mb-4"
+                className="pointer-events-auto flex items-center gap-2 text-white/50 hover:text-white transition-colors text-[9px] sm:text-[10px] uppercase font-black tracking-[0.4em] mb-8"
               >
-                <Zap size={14} className="text-[#00f2ff]" />
+                <RefreshCw size={14} className="text-[#00f2ff] animate-spin-slow" />
                 INSTALL CORE SYSTEM
               </motion.button>
             )}
 
-            <p className="absolute bottom-20 text-white/20 text-[10px] tracking-[0.5em] font-black uppercase animate-pulse">
-              CLICK OR PRESS SPACE TO FLY
+            <p className="absolute bottom-10 sm:bottom-20 text-white/20 text-[8px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.5em] font-black uppercase animate-pulse text-center">
+              TAP OR SPACE TO FLY
             </p>
           </motion.div>
         )}

@@ -207,9 +207,9 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
                 // Perfect Orb Core Rendering - Absolute box-killer logic
                 ctx.save();
                 
-                // 1. Core Clipping - slightly smaller than sprite to shave off edge artifacts
+                // 1. Extreme Clipping - Shave deep to hide edges
                 ctx.beginPath();
-                ctx.arc(0, 0, (size/2) - 12, 0, Math.PI * 2);
+                ctx.arc(0, 0, (size/2) - 14, 0, Math.PI * 2);
                 ctx.clip();
                 
                 // 2. High-intensity Screen Blend
@@ -221,14 +221,14 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
                 // 3. Post-Process Bloom Halo - Seals the "Core" identity
                 ctx.save();
                 const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
-                glow.addColorStop(0, 'rgba(0, 242, 255, 0.8)');
-                glow.addColorStop(0.3, 'rgba(0, 242, 255, 0.3)');
+                glow.addColorStop(0, 'rgba(0, 242, 255, 0.9)');
+                glow.addColorStop(0.2, 'rgba(0, 242, 255, 0.4)');
                 glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
                 
                 ctx.globalCompositeOperation = 'screen';
                 ctx.fillStyle = glow;
                 ctx.beginPath();
-                ctx.arc(0, 0, size * 0.7, 0, Math.PI * 2);
+                ctx.arc(0, 0, size * 0.75, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
             }
