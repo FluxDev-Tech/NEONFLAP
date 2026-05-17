@@ -53,6 +53,11 @@ export class SoundManager {
       setTimeout(() => this.playTone(f, 'sine', 0.6, 0.08), i * 150);
     });
   }
+
+  public playLevelUp() {
+    this.playTone(600, 'sine', 0.1);
+    this.playTone(900, 'sine', 0.15);
+  }
 }
 
 export const soundManager = new SoundManager();

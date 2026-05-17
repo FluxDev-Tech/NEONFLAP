@@ -43,10 +43,10 @@ export class GameManager {
     this.gravityDirection = 1;
     this.engine.gravity.y = 1.0; // Lowered gravity for easier flight
 
-    // Player (Bird)
-    this.player = Matter.Bodies.rectangle(100, height / 2, 40, 30, {
+    // Player (Bird) - Using a circle for smoother physics and less 'boxy' collisions
+    this.player = Matter.Bodies.circle(100, height / 2, 22, {
       friction: 0.0001,
-      frictionAir: 0.04, // Slightly more air resistance for better control
+      frictionAir: 0.045, // Slightly more air resistance for better control
       restitution: 0.3, 
       density: 0.001,
       label: 'player',
@@ -60,9 +60,9 @@ export class GameManager {
     Matter.World.add(this.world, [this.player, ground, ceiling]);
 
     // Create flappy pipes
-    const gapSize = 300; // Even larger gap for easy gameplay
+    const gapSize = 320; // Even larger gap for very easy gameplay
     for (let i = 0; i < 40; i++) {
-        const x = 900 + i * 700; // More space between pipes
+        const x = 900 + i * 750; // More space between pipes
         const minH = 60;
         const maxH = height - gapSize - minH;
         const topPipeH = minH + Math.random() * maxH;
@@ -107,7 +107,7 @@ export class GameManager {
     }
 
     // Win trigger
-    const winTrigger = Matter.Bodies.rectangle(900 + 40 * 700 + 1000, height / 2, 100, height, {
+    const winTrigger = Matter.Bodies.rectangle(900 + 40 * 750 + 1000, height / 2, 100, height, {
         isStatic: true,
         isSensor: true,
         label: 'win'

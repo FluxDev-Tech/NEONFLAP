@@ -3,15 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameState } from './game/GameManager';
 import GameCanvas from './components/GameCanvas';
+import { soundManager } from './game/SoundManager';
 import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home } from 'lucide-react';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
   const [score, setScore] = useState(0);
+  const scoreRef = useRef(0);
   const [highScores, setHighScores] = useState<number[]>(() => {
     const saved = localStorage.getItem('neon-flap-highscores');
     if (saved) return JSON.parse(saved);
@@ -20,6 +22,7 @@ export default function App() {
   });
   const [isNewRecordReached, setIsNewRecordReached] = useState(false);
   const highScore = highScores[0] || 0;
+  const displayedBest = Math.max(highScore, score);
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -58,6 +61,17 @@ export default function App() {
     }
   }, [score, highScore, isNewRecordReached, gameState]);
 
+  const handleScoreUpdate = useCallback((newScore: number) => {
+    scoreRef.current = newScore;
+    setScore(newScore);
+    
+    // Check for highscore during gameplay
+    if (highScores.length > 0 && newScore > highScores[0] && !isNewRecordReached) {
+      setIsNewRecordReached(true);
+      soundManager.playLevelUp();
+    }
+  }, [highScores, isNewRecordReached]);
+
   const handleStateChange = useCallback((newState: GameState) => {
     setGameState(newState);
     if (newState === GameState.PLAYING) {
@@ -65,18 +79,22 @@ export default function App() {
     }
     if (newState === GameState.GAME_OVER || newState === GameState.WIN) {
       setHighScores(prev => {
-          if (score > 0) {
-            const newScores = [...prev, score]
+          const currentScore = scoreRef.current;
+          // Only save if it's a non-zero score and either better than existing or limited list not full
+          if (currentScore > 0) {
+            const newScores = [...prev, currentScore]
               .filter((s, i, self) => self.indexOf(s) === i) // Dedupe
               .sort((a, b) => b - a)
               .slice(0, 5);
+            
+            // Explicitly update local storage with the new sorted list
             localStorage.setItem('neon-flap-highscores', JSON.stringify(newScores));
             return newScores;
           }
           return prev;
       });
     }
-  }, [score]);
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] text-white font-sans overflow-hidden select-none">
@@ -84,7 +102,7 @@ export default function App() {
       <div className="absolute inset-0">
         <GameCanvas 
           gameState={gameState}
-          onScoreUpdate={setScore}
+          onScoreUpdate={handleScoreUpdate}
           onStateUpdate={handleStateChange}
         />
       </div>
@@ -106,7 +124,7 @@ export default function App() {
             </div>
             <div className="text-[10px] sm:text-xs font-mono text-white/30 border-l border-white/10 pl-3 md:pl-4">
               <span className="block text-[8px] uppercase tracking-widest opacity-50">Best</span>
-              <span className="tabular-nums">{highScore.toString().padStart(6, '0')}</span>
+              <span className="tabular-nums">{displayedBest.toString().padStart(6, '0')}</span>
             </div>
           </div>
         </div>

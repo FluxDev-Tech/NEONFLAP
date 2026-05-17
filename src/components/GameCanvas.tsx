@@ -61,13 +61,17 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
     const ctx = canvasRef.current.getContext('2d', { alpha: false })!;
     
-    const render = () => {
+    let lastTime = performance.now();
+    const render = (time: number) => {
       if (!ctx || !manager) return;
       
-      const now = Date.now();
-      // Manual step for perfect sync and performance
-      manager.step(16.66);
+      const delta = Math.min(time - lastTime, 33.3); // Cap at ~30FPS to prevent physics glitches if tab is backgrounded
+      lastTime = time;
 
+      // Manual step for perfect sync and performance
+      manager.step(delta);
+
+      const now = Date.now();
       // Trigger shake on score increase removed for performance and smooth movement
       if (manager.score > lastScoreRef.current) {
           lastScoreRef.current = manager.score;
@@ -99,6 +103,16 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
         drawParallaxLayer(0.05, 0.12, -50, 2);
         // Mid layer
         drawParallaxLayer(0.15, 0.3, 0);
+        
+        // Polished Background Particles (Dust/Data bits)
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = '#00f2ff';
+        for (let i = 0; i < 20; i++) {
+            const px = (i * 243 + playerX * 0.2) % dimensions.width;
+            const py = (i * 117) % dimensions.height;
+            ctx.fillRect(px, py, 2, 2);
+        }
+
         // Fore layer
         drawParallaxLayer(0.4, 0.06, -100, 1.3);
 
@@ -113,7 +127,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
       ctx.translate(offsetX, offsetY);
 
       // Draw grid
-      ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
+      ctx.strokeStyle = 'rgba(0, 242, 255, 0.02)'; // Even more subtle grid to prevent 'boxy' appearance
       ctx.lineWidth = 1;
       const gridSize = 150;
       const startX = Math.floor(playerX / gridSize) * gridSize - 1500;
@@ -162,11 +176,11 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.lineTo(body.position.x, dimensions.height);
             ctx.stroke();
         } else if (body.label === 'player') {
-            const size = 62;
+            const size = 58; // Slightly smaller to look sharper
             const time = now * 0.004;
             // Subtle idle sway (vertical and rotational)
             const swayY = Math.sin(time) * 4;
-            const swayRot = Math.sin(time * 0.8) * 0.05;
+            const swayRot = Math.sin(time * 0.8) * 0.04;
             
             const flapY = Math.sin(now * 0.015) * 8; 
             flapAnimRef.current *= 0.88;
@@ -179,18 +193,37 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.rotate(velocityRot + swayRot);
 
             if (birdImg.current) {
+                ctx.save();
+                // Create a circular clipping path to remove corners if the image has a black box
+                ctx.beginPath();
+                ctx.arc(0, 0, size/2 - 2, 0, Math.PI * 2);
+                ctx.clip();
+                
+                // Composite mode to blend with environment if it's a glow bird
+                ctx.globalCompositeOperation = 'screen';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
+                ctx.restore();
             }
 
-            // Enhanced Wing Animation
+            // Wing Animation - Replaced ellipse with a more organic path to avoid 'boxy' look
             ctx.beginPath();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-            const wingWidth = 26;
-            const wingHeight = 15;
-            const flapOffset = flapY + (body.velocity.y > 0 ? 4 : -4);
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; // Matching bird color
+            const flapOffset = flapY + (body.velocity.y > 0 ? 5 : -5);
             
-            ctx.ellipse(-10, flapOffset, wingWidth / 2, wingHeight / 2, -0.3, 0, Math.PI * 2);
+            // Draw a more energetic, feathery wing shape
+            ctx.moveTo(-2, 0);
+            ctx.bezierCurveTo(-15, flapOffset - 15, -30, flapOffset - 5, -35, flapOffset);
+            ctx.bezierCurveTo(-30, flapOffset + 15, -15, flapOffset + 5, -2, 0);
             ctx.fill();
+
+            // Inner wing highlight
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.moveTo(-2, 0);
+            ctx.quadraticCurveTo(-15, flapOffset - 8, -25, flapOffset);
+            ctx.quadraticCurveTo(-15, flapOffset + 8, -2, 0);
+            ctx.fill();
+            
             ctx.restore();
         } else if (body.label === 'obstacle') {
             const vertices = body.vertices;
@@ -201,26 +234,36 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
             const isTopPipe = cy < dimensions.height / 2;
 
-            // Pillar Body - Crimson Red
-            ctx.fillStyle = '#2a0000';
+            // Pillar Body - Deep Blood Red Gradient for 3D feel
+            const bodyGradient = ctx.createLinearGradient(cx - width/2, 0, cx + width/2, 0);
+            bodyGradient.addColorStop(0, '#2a0000');
+            bodyGradient.addColorStop(0.5, '#4a0000');
+            bodyGradient.addColorStop(1, '#2a0000');
+            ctx.fillStyle = bodyGradient;
             ctx.fillRect(cx - width/2, cy - height/2, width, height);
             
-            // Neon Red Highlights
-            ctx.strokeStyle = '#ff0033';
-            ctx.lineWidth = 2;
+            // Vibrant Neon Red Highlights
+            ctx.strokeStyle = '#ff1144';
+            ctx.lineWidth = 1;
             ctx.strokeRect(cx - width/2, cy - height/2, width, height);
+            
+            // Subtle scanlines on pipes
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            for (let y = cy - height/2; y < cy + height/2; y += 4) {
+                ctx.fillRect(cx - width/2, y, width, 1);
+            }
 
             // Energy Tip
-            const capHeight = 10;
+            const capHeight = 14;
             const tipY = isTopPipe ? (cy + height/2 - capHeight) : (cy - height/2);
             
-            // Glowing tip core
-            ctx.fillStyle = '#ff0033';
-            ctx.fillRect(cx - width/2 - 2, tipY, width + 4, capHeight);
+            // Glowing tip core - Crimson Pulse
+            ctx.fillStyle = '#ff1144';
+            ctx.fillRect(cx - width/2 - 4, tipY, width + 8, capHeight);
             
-            // White hot energy center
+            // White hot energy center - Pure highlight
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(cx - width/2 + 5, tipY + 2, width - 10, capHeight - 4);
+            ctx.fillRect(cx - width/2 + 10, tipY + 4, width - 20, capHeight - 8);
         } else if (body.label === 'ground') {
             // Not explicitly drawn box for ground, but we could add a floor line
         }
@@ -254,7 +297,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
   const handleInteraction = () => {
       if (managerRef.current) {
-          if (gameState === GameState.START || gameState === GameState.GAME_OVER || gameState === GameState.WIN) {
+          if (gameState === GameState.START || gameState === GameState.GAME_OVER || gameState === GameState.WIN || gameState === GameState.PAUSED) {
               onStateUpdate(GameState.PLAYING);
           } else if (gameState === GameState.PLAYING) {
               managerRef.current.flap();
