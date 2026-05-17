@@ -14,14 +14,17 @@ export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
   const [score, setScore] = useState(0);
   const scoreRef = useRef(0);
-  const [highScores, setHighScores] = useState<number[]>(() => {
-    const saved = localStorage.getItem('neon-flap-highscores');
-    if (saved) return JSON.parse(saved);
-    const legacy = localStorage.getItem('neon-flap-highscore');
-    return legacy ? [parseInt(legacy, 10)] : [0];
+  const [highScore, setHighScore] = useState<number>(() => {
+    const saved = localStorage.getItem('neon-flap-highscore');
+    if (saved) return parseInt(saved, 10);
+    const legacy = localStorage.getItem('neon-flap-highscores');
+    if (legacy) {
+      const scores = JSON.parse(legacy);
+      return Array.isArray(scores) ? scores[0] : 0;
+    }
+    return 0;
   });
   const [isNewRecordReached, setIsNewRecordReached] = useState(false);
-  const highScore = highScores[0] || 0;
   const displayedBest = Math.max(highScore, score);
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -66,11 +69,11 @@ export default function App() {
     setScore(newScore);
     
     // Check for highscore during gameplay
-    if (highScores.length > 0 && newScore > highScores[0] && !isNewRecordReached) {
+    if (newScore > highScore && !isNewRecordReached) {
       setIsNewRecordReached(true);
       soundManager.playLevelUp();
     }
-  }, [highScores, isNewRecordReached]);
+  }, [highScore, isNewRecordReached]);
 
   const handleStateChange = useCallback((newState: GameState) => {
     setGameState(newState);
@@ -78,18 +81,11 @@ export default function App() {
       setIsNewRecordReached(false);
     }
     if (newState === GameState.GAME_OVER || newState === GameState.WIN) {
-      setHighScores(prev => {
+      setHighScore(prev => {
           const currentScore = scoreRef.current;
-          // Only save if it's a non-zero score and either better than existing or limited list not full
-          if (currentScore > 0) {
-            const newScores = [...prev, currentScore]
-              .filter((s, i, self) => self.indexOf(s) === i) // Dedupe
-              .sort((a, b) => b - a)
-              .slice(0, 5);
-            
-            // Explicitly update local storage with the new sorted list
-            localStorage.setItem('neon-flap-highscores', JSON.stringify(newScores));
-            return newScores;
+          if (currentScore > prev) {
+            localStorage.setItem('neon-flap-highscore', currentScore.toString());
+            return currentScore;
           }
           return prev;
       });
@@ -227,8 +223,9 @@ export default function App() {
                 
                 <button 
                   onClick={() => {
-                    handleStateChange(GameState.GAME_OVER); // Force stop current
-                    setTimeout(() => handleStateChange(GameState.PLAYING), 50); // Start fresh
+                    // Force a reset by going through a transient state or explicitly resetting
+                    handleStateChange(GameState.START);
+                    setTimeout(() => handleStateChange(GameState.PLAYING), 10);
                   }}
                   className="flex items-center justify-center gap-3 bg-white/10 text-white py-4 rounded-full font-bold hover:bg-white/20 transition-all cursor-pointer border border-white/10"
                 >
@@ -273,18 +270,13 @@ export default function App() {
                 <span className="text-neutral-400 uppercase text-[10px] tracking-widest mb-1">Final Score</span>
                 <span className="text-4xl sm:text-5xl font-mono font-bold text-[#f0ff00] mb-6">{score}</span>
                 
-                <div className="w-full border-t border-white/10 pt-4">
-                  <div className="flex items-center gap-2 mb-4 text-[#888]">
+                <div className="w-full border-t border-white/10 pt-4 flex flex-col items-center">
+                  <div className="flex items-center gap-2 mb-2 text-[#888]">
                     <Trophy size={14} />
-                    <span className="text-[10px] uppercase font-black tracking-widest">Hall of Fame</span>
+                    <span className="text-[10px] uppercase font-black tracking-widest">Global Best</span>
                   </div>
-                  <div className="space-y-2">
-                    {highScores.map((s, i) => (
-                      <div key={i} className={`flex justify-between items-center text-sm font-mono ${s === score ? 'text-[#f0ff00]' : 'text-white/40'}`}>
-                        <span className="text-[10px] uppercase tracking-tighter opacity-50">Rank {i + 1}</span>
-                        <span className="font-bold text-xs sm:text-sm">{s.toString().padStart(6, '0')}</span>
-                      </div>
-                    ))}
+                  <div className="text-2xl font-mono text-white/50">
+                    {highScore.toString().padStart(6, '0')}
                   </div>
                 </div>
               </div>

@@ -36,7 +36,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
   const birdImg = useRef<HTMLImageElement | null>(null);
   const forestImg = useRef<HTMLImageElement | null>(null);
-  const flapAnimRef = useRef(0);
   
   useEffect(() => {
     const bImg = new Image();
@@ -182,9 +181,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             const swayY = Math.sin(time) * 4;
             const swayRot = Math.sin(time * 0.8) * 0.04;
             
-            const flapY = Math.sin(now * 0.015) * 8; 
-            flapAnimRef.current *= 0.88;
-            
             ctx.save();
             ctx.translate(body.position.x, body.position.y + swayY);
             
@@ -205,25 +201,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
                 ctx.restore();
             }
 
-            // Wing Animation - Replaced ellipse with a more organic path to avoid 'boxy' look
-            ctx.beginPath();
-            ctx.fillStyle = 'rgba(0, 242, 255, 0.5)'; // Matching bird color
-            const flapOffset = flapY + (body.velocity.y > 0 ? 5 : -5);
-            
-            // Draw a more energetic, feathery wing shape
-            ctx.moveTo(-2, 0);
-            ctx.bezierCurveTo(-15, flapOffset - 15, -30, flapOffset - 5, -35, flapOffset);
-            ctx.bezierCurveTo(-30, flapOffset + 15, -15, flapOffset + 5, -2, 0);
-            ctx.fill();
-
-            // Inner wing highlight
-            ctx.beginPath();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.moveTo(-2, 0);
-            ctx.quadraticCurveTo(-15, flapOffset - 8, -25, flapOffset);
-            ctx.quadraticCurveTo(-15, flapOffset + 8, -2, 0);
-            ctx.fill();
-            
             ctx.restore();
         } else if (body.label === 'obstacle') {
             const vertices = body.vertices;
@@ -284,17 +261,18 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
   // Handle GameState changes via parent
   useEffect(() => {
     if (managerRef.current) {
-        if (gameState === GameState.PLAYING && managerRef.current.gameState !== GameState.PLAYING) {
-            // If we are resetting from game over
-            if (managerRef.current.gameState === GameState.GAME_OVER || managerRef.current.gameState === GameState.WIN) {
+        const currentMState = managerRef.current.gameState;
+        
+        if (gameState === GameState.PLAYING) {
+            // Reset if we are starting a fresh game (from Menu, Game Over, or Win)
+            // But NOT if we are simply unpausing
+            if (currentMState === GameState.START || currentMState === GameState.GAME_OVER || currentMState === GameState.WIN) {
                 managerRef.current.init(dimensions.width, dimensions.height);
                 lastScoreRef.current = 0;
             }
             managerRef.current.setGameState(GameState.PLAYING);
-        } else if (gameState === GameState.PAUSED) {
-            managerRef.current.setGameState(GameState.PAUSED);
-        } else if (gameState === GameState.START) {
-            managerRef.current.setGameState(GameState.START);
+        } else {
+            managerRef.current.setGameState(gameState);
         }
     }
   }, [gameState, dimensions]);
@@ -306,7 +284,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
           } else if (gameState === GameState.PLAYING) {
               managerRef.current.flap();
               soundManager.playFlip();
-              flapAnimRef.current = 20; 
           }
       }
   };
