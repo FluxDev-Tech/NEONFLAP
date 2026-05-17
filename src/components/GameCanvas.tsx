@@ -36,16 +36,17 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
   const birdImg = useRef<HTMLImageElement | null>(null);
   const forestImg = useRef<HTMLImageElement | null>(null);
   const flapAnimRef = useRef(0);
+  const trailRef = useRef<{x: number, y: number, alpha: number}[]>([]);
   
   useEffect(() => {
     const bImg = new Image();
-    bImg.src = '/src/assets/images/neon_bird_asset_1778975467334.png';
+    bImg.src = '/bird.png';
     bImg.onload = () => {
         birdImg.current = bImg;
     };
 
     const fImg = new Image();
-    fImg.src = '/src/assets/images/neon_forest_layer_1778975701874.png';
+    fImg.src = '/forest-bg.png';
     fImg.onload = () => {
         forestImg.current = fImg;
     };
@@ -58,54 +59,96 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
     managerRef.current = manager;
     manager.init(dimensions.width, dimensions.height);
 
-    const ctx = canvasRef.current.getContext('2d')!;
+    const ctx = canvasRef.current.getContext('2d', { alpha: false })!;
     
     const render = () => {
       if (!ctx || !manager) return;
       
       manager.update();
 
+      // Update trail
+      if (manager.player && manager.gameState === GameState.PLAYING) {
+          trailRef.current.unshift({ 
+              x: manager.player.position.x, 
+              y: manager.player.position.y, 
+              alpha: 0.6 
+          });
+          if (trailRef.current.length > 15) trailRef.current.pop();
+      }
+      trailRef.current.forEach(p => p.alpha *= 0.9);
+
       // Trigger shake on score increase
       if (manager.score > lastScoreRef.current) {
-          shakeRef.current = 10;
+          shakeRef.current = 15; // Increased shake
           lastScoreRef.current = manager.score;
       }
       
       // Decay shake
-      shakeRef.current *= 0.9;
+      shakeRef.current *= 0.92;
       if (shakeRef.current < 0.1) shakeRef.current = 0;
 
       const shakeX = (Math.random() - 0.5) * shakeRef.current;
       const shakeY = (Math.random() - 0.5) * shakeRef.current;
       
-      // Background
-      ctx.fillStyle = '#0a0a0a';
+      // Deep Background sky
+      const pulseTime = Date.now() * 0.001;
+      const bgPulse = Math.sin(pulseTime * 0.5) * 5;
+      ctx.fillStyle = `rgb(${5 + bgPulse}, ${5 + bgPulse}, ${15 + bgPulse})`;
       ctx.fillRect(0, 0, dimensions.width, dimensions.height);
 
       const playerX = manager.player?.position.x || 0;
 
       // Draw Parallax Forest
       if (forestImg.current) {
-        const forestWidth = 1200;
+        // We use the same image for layers but with different properties
+        const forestWidth = dimensions.height * (16/9) * 2; // Scaled up for wider view
         const forestHeight = dimensions.height;
         
-        // Background layer (slowest)
-        const bgParallax = 0.1;
+        // Background layer (slowest, deep purple tint)
+        const bgParallax = 0.05;
         const bgOffset = -(playerX * bgParallax) % forestWidth;
-        ctx.globalAlpha = 0.15;
-        ctx.drawImage(forestImg.current, bgOffset, 0, forestWidth, forestHeight);
-        ctx.drawImage(forestImg.current, bgOffset + forestWidth, 0, forestWidth, forestHeight);
-        ctx.drawImage(forestImg.current, bgOffset - forestWidth, 0, forestWidth, forestHeight);
+        
+        ctx.save();
+        ctx.globalAlpha = 0.2 + Math.sin(pulseTime) * 0.05;
+        ctx.filter = 'blur(4px) brightness(0.5) hue-rotate(20deg)';
+        for (let i = -1; i <= 1; i++) {
+            ctx.drawImage(forestImg.current, bgOffset + (i * forestWidth), -50, forestWidth, forestHeight + 100);
+        }
+        ctx.restore();
 
-        // Midground layer
-        const mgParallax = 0.3;
+        // Midground layer (medium speed)
+        const mgParallax = 0.15;
         const mgOffset = -(playerX * mgParallax) % forestWidth;
-        ctx.globalAlpha = 0.3;
-        ctx.drawImage(forestImg.current, mgOffset, 100, forestWidth, forestHeight);
-        ctx.drawImage(forestImg.current, mgOffset + forestWidth, 100, forestWidth, forestHeight);
-        ctx.drawImage(forestImg.current, mgOffset - forestWidth, 100, forestWidth, forestHeight);
-        ctx.globalAlpha = 1.0;
+        
+        ctx.save();
+        ctx.globalAlpha = 0.4;
+        ctx.filter = 'blur(1px) brightness(0.8)';
+        for (let i = -1; i <= 1; i++) {
+            ctx.drawImage(forestImg.current, mgOffset + (i * forestWidth), 0, forestWidth, forestHeight);
+        }
+        ctx.restore();
+
+        // Foreground layer (fastest, close trees)
+        const fgParallax = 0.4;
+        const fgOffset = -(playerX * fgParallax) % forestWidth;
+        
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.filter = 'brightness(1.5) contrast(1.2) blur(10px)'; // Create depth blur
+        for (let i = -1; i <= 1; i++) {
+            ctx.drawImage(forestImg.current, fgOffset + (i * forestWidth), -100, forestWidth * 1.3, forestHeight * 1.3);
+        }
+        ctx.restore();
       }
+
+      // Add a very subtle scanline effect
+      ctx.save();
+      ctx.globalAlpha = 0.03;
+      ctx.fillStyle = '#000000';
+      for (let i = 0; i < dimensions.height; i += 4) {
+          ctx.fillRect(0, i, dimensions.width, 1);
+      }
+      ctx.restore();
 
       // Camera logic: follow player
       const offsetX = -playerX + 200 + shakeX;
@@ -114,8 +157,18 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
       ctx.save();
       ctx.translate(offsetX, offsetY);
 
+      // Draw Bird Trail
+      trailRef.current.forEach((p, i) => {
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = i % 2 === 0 ? '#00f2ff' : '#ff0055';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 10 - i * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+      });
+      ctx.globalAlpha = 1.0;
+
       // Draw grid
-      ctx.strokeStyle = '#1a1a1a';
+      ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
       ctx.lineWidth = 1;
       const gridSize = 100;
       const startX = Math.floor(playerX / gridSize) * gridSize - 1000;
@@ -136,13 +189,30 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             ctx.beginPath();
             ctx.fillStyle = '#f0ff00';
             ctx.arc(body.position.x, body.position.y, 15, 0, Math.PI * 2);
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = 20;
             ctx.shadowColor = '#f0ff00';
             ctx.fill();
             ctx.shadowBlur = 0;
+            
+            // Inner core
+            ctx.beginPath();
+            ctx.fillStyle = '#ffffff';
+            ctx.arc(body.position.x, body.position.y, 5, 0, Math.PI * 2);
+            ctx.fill();
         } else if (body.label === 'win') {
-            ctx.fillStyle = '#00ff44';
-            ctx.fillRect(body.position.x - 50, 0, 100, dimensions.height);
+            const gradient = ctx.createLinearGradient(body.position.x - 50, 0, body.position.x + 50, 0);
+            gradient.addColorStop(0, 'transparent');
+            gradient.addColorStop(0.5, 'rgba(0, 255, 68, 0.3)');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(body.position.x - 100, 0, 200, dimensions.height);
+            
+            ctx.strokeStyle = '#00ff44';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(body.position.x, 0);
+            ctx.lineTo(body.position.x, dimensions.height);
+            ctx.stroke();
         } else if (body.label === 'player') {
             const size = 55;
             const flapY = Math.sin(Date.now() * 0.02) * 5;
@@ -156,7 +226,7 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             ctx.rotate(rotation);
 
             if (birdImg.current) {
-                ctx.shadowBlur = 20;
+                ctx.shadowBlur = 25;
                 ctx.shadowColor = '#00f2ff';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
                 ctx.shadowBlur = 0;
@@ -188,46 +258,67 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             const cx = (vertices[0].x + vertices[2].x) / 2;
             const cy = (vertices[0].y + vertices[2].y) / 2;
 
-            // Outer Glow
-            ctx.shadowBlur = 15;
+            const isTopPipe = cy < dimensions.height / 2;
+
+            // Pillar Gradient
+            const pillarGrad = ctx.createLinearGradient(cx - width/2, 0, cx + width/2, 0);
+            pillarGrad.addColorStop(0, '#1a0008');
+            pillarGrad.addColorStop(0.5, '#4a001a');
+            pillarGrad.addColorStop(1, '#1a0008');
+
+            // Draw Pillar
+            ctx.shadowBlur = 20;
             ctx.shadowColor = '#ff0055';
-            ctx.fillStyle = '#1a0008';
-            ctx.strokeStyle = '#ff0055';
-            ctx.lineWidth = 2;
-            
-            // Draw Pipe Body
+            ctx.fillStyle = pillarGrad;
             ctx.beginPath();
             ctx.rect(cx - width/2, cy - height/2, width, height);
             ctx.fill();
+            
+            // Edge glowing lines
+            ctx.strokeStyle = '#ff0055';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx - width/2, cy - height/2);
+            ctx.lineTo(cx - width/2, cy + height/2);
+            ctx.moveTo(cx + width/2, cy - height/2);
+            ctx.lineTo(cx + width/2, cy + height/2);
             ctx.stroke();
+            
+            // Electronic "Nodes" on pillars
+            ctx.fillStyle = '#ff0055';
+            const nodeCount = Math.floor(height / 100);
+            for (let i = 0; i <= nodeCount; i++) {
+                const nodeY = (cy - height/2) + (i * 100) + (isTopPipe ? 0 : (height % 100));
+                if (nodeY >= (cy - height/2) && nodeY <= (cy + height/2)) {
+                    ctx.fillRect(cx - width/2 - 2, nodeY, 4, 10);
+                    ctx.fillRect(cx + width/2 - 2, nodeY, 4, 10);
+                }
+            }
+
             ctx.shadowBlur = 0;
 
-            // Draw Pipe Cap
-            const capHeight = 30;
-            const isTopPipe = cy < dimensions.height / 2;
-            const capY = isTopPipe ? (cy + height/2 - capHeight) : (cy - height/2);
+            // Draw Energy Tip (no more caps, instead intense glow)
+            const capHeight = 10;
+            const tipY = isTopPipe ? (cy + height/2 - capHeight) : (cy - height/2);
             
+            const tipGrad = ctx.createLinearGradient(0, tipY, 0, tipY + capHeight);
+            tipGrad.addColorStop(isTopPipe ? 0 : 1, '#ff0055');
+            tipGrad.addColorStop(isTopPipe ? 1 : 0, '#ffffff');
+
+            ctx.fillStyle = tipGrad;
+            ctx.shadowBlur = 30;
+            ctx.shadowColor = '#ffffff';
+            ctx.fillRect(cx - width/2 - 5, tipY, width + 10, capHeight);
+            ctx.shadowBlur = 0;
+            
+            // Energy pulse effect
+            const pulse = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
+            ctx.globalAlpha = pulse * 0.3;
             ctx.fillStyle = '#ff0055';
-            ctx.fillRect(cx - (width + 10)/2, capY, width + 10, capHeight);
-            
-            // Accent line
-            ctx.strokeStyle = '#ffffff';
-            ctx.globalAlpha = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(cx - width/2 + 5, cy - height/2);
-            ctx.lineTo(cx - width/2 + 5, cy + height/2);
-            ctx.stroke();
+            ctx.fillRect(cx - width/2 - 20, tipY - 40 * (isTopPipe ? 0 : 1), width + 40, 40);
             ctx.globalAlpha = 1.0;
-        } else {
-            ctx.beginPath();
-            ctx.fillStyle = (body.render.fillStyle as string) || '#ffffff';
-            const vertices = body.vertices;
-            ctx.moveTo(vertices[0].x, vertices[0].y);
-            for (let j = 1; j < vertices.length; j++) {
-                ctx.lineTo(vertices[j].x, vertices[j].y);
-            }
-            ctx.closePath();
-            ctx.fill();
+        } else if (body.label === 'ground') {
+            // Not explicitly drawn box for ground, but we could add a floor line
         }
       });
 
