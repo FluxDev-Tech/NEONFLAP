@@ -34,8 +34,21 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
   const birdImg = useRef<HTMLImageElement | null>(null);
   const forestImg = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   
   useEffect(() => {
     const bImg = new Image();
@@ -192,12 +205,23 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
                 ctx.save();
                 // Create a circular clipping path to remove corners if the image has a black box
                 ctx.beginPath();
-                ctx.arc(0, 0, size/2 - 2, 0, Math.PI * 2);
+                ctx.arc(0, 0, size/2 - 5, 0, Math.PI * 2);
                 ctx.clip();
                 
-                // Composite mode to blend with environment if it's a glow bird
-                ctx.globalCompositeOperation = 'screen';
+                // Draw the bird
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
+                ctx.restore();
+                
+                // Add a subtle outer glow to unify the bird with the neon aesthetic
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                ctx.beginPath();
+                const glow = ctx.createRadialGradient(0, 0, size/3, 0, 0, size/2);
+                glow.addColorStop(0, 'rgba(0, 242, 255, 0.2)');
+                glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
+                ctx.fillStyle = glow;
+                ctx.arc(0, 0, size/2, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.restore();
             }
 
@@ -300,6 +324,12 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
         onKeyDown={(e) => e.code === 'Space' && handleInteraction()}
         tabIndex={0}
     >
+      {isOffline && (
+        <div className="absolute top-2 right-16 z-50 px-2 py-1 bg-amber-500/20 border border-amber-500/40 rounded flex items-center gap-2 pointer-events-none">
+          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          <span className="text-[8px] font-mono text-amber-500 uppercase tracking-widest font-black">Offline Synchronization Active</span>
+        </div>
+      )}
       <canvas 
         ref={canvasRef} 
         width={dimensions.width} 

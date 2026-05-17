@@ -111,17 +111,25 @@ export default function App() {
             <span className="text-[10px] font-mono tracking-widest uppercase hidden sm:inline">Flux Engine Active</span>
             <span className="text-[8px] bg-[#00f2ff]/20 text-[#00f2ff] px-1.5 py-0.5 rounded border border-[#00f2ff]/30 font-black tracking-tighter">2026 EDITION</span>
           </div>
-          <div className="flex items-baseline gap-3 md:gap-4 relative">
-            <div className={`text-2xl sm:text-3xl md:text-4xl font-mono font-bold tabular-nums tracking-tighter transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_15px_rgba(240,255,0,0.6)] animate-pulse' : ''}`}>
+          <div className="flex flex-col relative">
+            <div className={`text-2xl sm:text-4xl font-mono font-bold tabular-nums tracking-tighter transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_15px_rgba(240,255,0,0.6)] animate-pulse' : ''}`}>
               {score.toString().padStart(6, '0')}
-              {isNewRecordReached && (
-                <span className="absolute -top-4 left-0 text-[8px] font-black uppercase text-[#f0ff00] tracking-tighter">New Best</span>
-              )}
             </div>
-            <div className="text-[10px] sm:text-xs font-mono text-white/30 border-l border-white/10 pl-3 md:pl-4">
-              <span className="block text-[8px] uppercase tracking-widest opacity-50">Best</span>
-              <span className="tabular-nums">{displayedBest.toString().padStart(6, '0')}</span>
+            <div className="flex flex-col mt-0.5 opacity-50">
+              <span className="text-[7px] uppercase font-black tracking-[0.2em] leading-none mb-0.5">Best Score</span>
+              <span className="text-[10px] sm:text-xs font-mono font-bold leading-none tabular-nums">
+                {displayedBest.toString().padStart(6, '0')}
+              </span>
             </div>
+            {isNewRecordReached && (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="absolute -right-16 top-0 text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-1.5 py-0.5 rounded border border-[#f0ff00]/30"
+              >
+                New Best
+              </motion.div>
+            )}
           </div>
         </div>
 
