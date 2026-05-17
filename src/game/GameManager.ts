@@ -158,17 +158,17 @@ export class GameManager {
 
   public flap() {
     if (this.gameState !== GameState.PLAYING || !this.player) return;
-    Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -7.5 });
+    Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -8.5 });
   }
 
   public update() {
     if (this.gameState === GameState.PLAYING && this.player) {
-      // Gradually increase speed based on score (slower progression)
-      const baseSpeed = 3.2; // Slightly slower start (from 3.5 to 3.2)
-      const speedIncrease = Math.min(2.5, this.score / 750); // Slower increase (from 500 to 750)
+      // Fast, responsive speed
+      const baseSpeed = 4.2; 
+      const speedIncrease = Math.min(3.5, this.score / 600);
       const currentSpeed = baseSpeed + speedIncrease;
 
-      // Forward motion
+      // Consistent forward velocity
       Matter.Body.setVelocity(this.player, { x: currentSpeed, y: this.player.velocity.y });
       
       // Horizontal bounds (don't really need but for safety)

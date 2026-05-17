@@ -13,7 +13,6 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
   const containerRef = useRef<HTMLDivElement>(null);
   const managerRef = useRef<GameManager | null>(null);
   const requestRef = useRef<number>(0);
-  const shakeRef = useRef(0);
   const lastScoreRef = useRef(0);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
@@ -36,7 +35,6 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
   const birdImg = useRef<HTMLImageElement | null>(null);
   const forestImg = useRef<HTMLImageElement | null>(null);
   const flapAnimRef = useRef(0);
-  const trailRef = useRef<{x: number, y: number, alpha: number}[]>([]);
   
   useEffect(() => {
     const bImg = new Image();
@@ -66,32 +64,15 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
       
       manager.update();
 
-      // Update trail
-      if (manager.player && manager.gameState === GameState.PLAYING) {
-          trailRef.current.unshift({ 
-              x: manager.player.position.x, 
-              y: manager.player.position.y, 
-              alpha: 0.5 
-          });
-          if (trailRef.current.length > 12) trailRef.current.pop();
-          trailRef.current.forEach(p => p.alpha *= 0.88);
-      }
-
-      // Trigger shake on score increase
+      // Trigger shake on score increase removed for performance and smooth movement
       if (manager.score > lastScoreRef.current) {
-          shakeRef.current = 10;
           lastScoreRef.current = manager.score;
       }
       
-      // Decay shake
-      shakeRef.current *= 0.85;
-      if (shakeRef.current < 0.1) shakeRef.current = 0;
-
-      const shakeX = shakeRef.current > 0 ? (Math.random() - 0.5) * shakeRef.current : 0;
-      const shakeY = shakeRef.current > 0 ? (Math.random() - 0.5) * shakeRef.current : 0;
+      const shakeX = 0;
+      const shakeY = 0;
       
       // Deep Background sky
-      const pulseTime = Date.now() * 0.001;
       ctx.fillStyle = '#050510';
       ctx.fillRect(0, 0, dimensions.width, dimensions.height);
 
@@ -108,8 +89,8 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
         const bgOffset = -(playerX * bgParallax) % forestWidth;
         
         ctx.save();
-        ctx.globalAlpha = 0.15 + Math.sin(pulseTime) * 0.03;
-        // Optimization: Removing filter='blur(4px) brightness(0.5) hue-rotate(20deg)' as it is very slow
+        ctx.globalAlpha = 0.15;
+        // High-performance drawing without expensive filters
         for (let i = -1; i <= 1; i++) {
             ctx.drawImage(forestImg.current, bgOffset + (i * forestWidth), -50, forestWidth, forestHeight + 100);
         }
@@ -121,7 +102,6 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
         
         ctx.save();
         ctx.globalAlpha = 0.35;
-        // Optimization: Removing filter='blur(1px) brightness(0.8)'
         for (let i = -1; i <= 1; i++) {
             ctx.drawImage(forestImg.current, mgOffset + (i * forestWidth), 0, forestWidth, forestHeight);
         }
@@ -133,43 +113,26 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
         
         ctx.save();
         ctx.globalAlpha = 0.1;
-        // Optimization: Removing filter='brightness(1.5) contrast(1.2) blur(10px)'
         for (let i = -1; i <= 1; i++) {
             ctx.drawImage(forestImg.current, fgOffset + (i * forestWidth), -100, forestWidth * 1.3, forestHeight * 1.3);
         }
         ctx.restore();
       }
 
-      // Add a very subtle scanline effect - Optimized
-      ctx.fillStyle = 'rgba(0,0,0,0.01)';
-      for (let i = 0; i < dimensions.height; i += 8) {
-          ctx.fillRect(0, i, dimensions.width, 2);
-      }
-
       // Camera logic: follow player
-      const offsetX = -playerX + 200 + shakeX;
-      const offsetY = shakeY;
+      const offsetX = -playerX + 200;
+      const offsetY = 0;
 
       ctx.save();
       ctx.translate(offsetX, offsetY);
 
-      // Draw Bird Trail
-      trailRef.current.forEach((p, i) => {
-          ctx.globalAlpha = p.alpha;
-          ctx.fillStyle = i % 2 === 0 ? '#00f2ff' : '#ff0055';
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 10 - i * 0.5, 0, Math.PI * 2);
-          ctx.fill();
-      });
-      ctx.globalAlpha = 1.0;
-
       // Draw grid
-      ctx.strokeStyle = 'rgba(0, 242, 255, 0.03)';
+      ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
       ctx.lineWidth = 1;
-      const gridSize = 120;
-      const startX = Math.floor(playerX / gridSize) * gridSize - 1200;
+      const gridSize = 150;
+      const startX = Math.floor(playerX / gridSize) * gridSize - 1500;
       ctx.beginPath();
-      for (let x = startX; x < startX + dimensions.width + 2400; x += gridSize) {
+      for (let x = startX; x < startX + dimensions.width + 3000; x += gridSize) {
         ctx.moveTo(x, 0);
         ctx.lineTo(x, dimensions.height);
       }
@@ -225,27 +188,23 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             ctx.rotate(rotation);
 
             if (birdImg.current) {
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#00f2ff';
+                // High-performance image drawing (no shadows)
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
-                ctx.shadowBlur = 0;
             } else {
-                // Fallback cute circle
                 ctx.beginPath();
                 ctx.fillStyle = '#00f2ff';
                 ctx.arc(0, 0, 18, 0, Math.PI * 2);
                 ctx.fill();
             }
 
-            // Wing animation
+            // Wing animation (simplified/efficient)
             ctx.beginPath();
-            ctx.fillStyle = '#ffffff';
-            ctx.globalAlpha = 0.6;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
             const wingWidth = 20;
             const wingHeight = 12;
             const flapOffset = flapAnimRef.current > 0.1 ? -12 : flapY;
             
-            ctx.ellipse(-5, 0 + flapOffset, wingWidth / 2, wingHeight / 2, -0.2, 0, Math.PI * 2);
+            ctx.ellipse(-5, flapOffset, wingWidth / 2, wingHeight / 2, -0.2, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         } else if (body.label === 'obstacle') {
@@ -257,63 +216,15 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
 
             const isTopPipe = cy < dimensions.height / 2;
 
-            // Pillar Gradient
-            const pillarGrad = ctx.createLinearGradient(cx - width/2, 0, cx + width/2, 0);
-            pillarGrad.addColorStop(0, '#1a0008');
-            pillarGrad.addColorStop(0.5, '#4a001a');
-            pillarGrad.addColorStop(1, '#1a0008');
-
-            // Draw Pillar
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = '#ff0055';
-            ctx.fillStyle = pillarGrad;
-            ctx.beginPath();
-            ctx.rect(cx - width/2, cy - height/2, width, height);
-            ctx.fill();
+            // Pillar Solid Style for performance
+            ctx.fillStyle = '#1a0008';
+            ctx.fillRect(cx - width/2, cy - height/2, width, height);
             
-            // Edge glowing lines
-            ctx.strokeStyle = '#ff0055';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(cx - width/2, cy - height/2);
-            ctx.lineTo(cx - width/2, cy + height/2);
-            ctx.moveTo(cx + width/2, cy - height/2);
-            ctx.lineTo(cx + width/2, cy + height/2);
-            ctx.stroke();
-            
-            // Electronic "Nodes" on pillars
-            ctx.fillStyle = '#ff0055';
-            const nodeCount = Math.floor(height / 100);
-            for (let i = 0; i <= nodeCount; i++) {
-                const nodeY = (cy - height/2) + (i * 100) + (isTopPipe ? 0 : (height % 100));
-                if (nodeY >= (cy - height/2) && nodeY <= (cy + height/2)) {
-                    ctx.fillRect(cx - width/2 - 2, nodeY, 4, 10);
-                    ctx.fillRect(cx + width/2 - 2, nodeY, 4, 10);
-                }
-            }
-
-            ctx.shadowBlur = 0;
-
-            // Draw Energy Tip (no more caps, instead intense glow)
+            // Energy Tip
             const capHeight = 10;
             const tipY = isTopPipe ? (cy + height/2 - capHeight) : (cy - height/2);
-            
-            const tipGrad = ctx.createLinearGradient(0, tipY, 0, tipY + capHeight);
-            tipGrad.addColorStop(isTopPipe ? 0 : 1, '#ff0055');
-            tipGrad.addColorStop(isTopPipe ? 1 : 0, '#ffffff');
-
-            ctx.fillStyle = tipGrad;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#ffffff';
-            ctx.fillRect(cx - width/2 - 5, tipY, width + 10, capHeight);
-            ctx.shadowBlur = 0;
-            
-            // Energy pulse effect
-            const pulse = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
-            ctx.globalAlpha = pulse * 0.3;
-            ctx.fillStyle = '#ff0055';
-            ctx.fillRect(cx - width/2 - 20, tipY - 40 * (isTopPipe ? 0 : 1), width + 40, 40);
-            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(cx - width/2 - 2, tipY, width + 4, capHeight);
         } else if (body.label === 'ground') {
             // Not explicitly drawn box for ground, but we could add a floor line
         }
@@ -360,7 +271,7 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
   return (
     <div 
         ref={containerRef} 
-        className="w-full h-full relative cursor-pointer overflow-hidden touch-none"
+        className="w-full h-full relative cursor-pointer overflow-hidden touch-none outline-none focus:outline-none"
         onClick={handleInteraction}
         onTouchStart={(e) => {
           e.preventDefault();
