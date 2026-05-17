@@ -91,16 +91,16 @@ export default function App() {
         />
       </div>
 
-      <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-40 pointer-events-none select-none">
+      <div className="absolute top-4 left-4 sm:top-8 sm:left-8 z-40 pointer-events-none select-none">
         <div className="flex flex-col">
           <div className="flex flex-col">
-            <div className={`text-4xl sm:text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/95'}`}>
+            <div className={`text-4xl sm:text-5xl md:text-6xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/95'}`}>
               {score.toString().padStart(6, '0')}
             </div>
 
-            <div className="flex flex-col mt-1 ml-1 opacity-40">
-              <span className="text-[6px] uppercase font-black tracking-[0.4em] leading-none mb-1">BEST</span>
-              <span className="text-xs font-mono font-bold leading-none tabular-nums">
+            <div className="flex flex-col mt-1 ml-1 opacity-50">
+              <span className="text-[6px] sm:text-[8px] uppercase font-black tracking-[0.4em] leading-none mb-1">GLOBAL BEST</span>
+              <span className="text-xs sm:text-sm font-mono font-bold leading-none tabular-nums text-[#00f2ff]">
                 {displayedBest.toString().padStart(6, '0')}
               </span>
             </div>
@@ -108,13 +108,13 @@ export default function App() {
         </div>
       </div>
 
-      <div className="absolute top-8 right-8 z-10">
+      <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-40">
         {gameState === GameState.PLAYING && (
           <button 
             onClick={() => handleStateChange(GameState.PAUSED)}
-            className="pointer-events-auto bg-white/5 hover:bg-white/10 p-4 rounded-full border border-white/10 transition-all backdrop-blur-md group active:scale-95"
+            className="pointer-events-auto bg-black/40 hover:bg-white/10 p-3 sm:p-4 rounded-full border border-white/10 transition-all backdrop-blur-md group active:scale-90"
           >
-            <Pause size={20} className="text-white group-hover:scale-110 transition-transform" />
+            <Pause size={18} className="text-white group-hover:scale-110 sm:w-5 sm:h-5 transition-transform" />
           </button>
         )}
       </div>
@@ -189,51 +189,60 @@ export default function App() {
         {gameState === GameState.PAUSED && (
           <motion.div 
             key="paused"
-            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, backdropFilter: 'blur(16px)' }}
-            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/70 p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-xl p-8"
           >
-            <h2 className="text-5xl sm:text-7xl font-black italic tracking-tighter text-white mb-2 leading-none text-center">SYSTEM PAUSED</h2>
-            <div className="flex flex-col items-center mb-10 sm:mb-16">
-              <span className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] text-white/40 mb-2">CURRENT SYNC</span>
-              <span className="text-3xl sm:text-4xl font-mono font-bold text-[#00f2ff] tabular-nums tracking-widest leading-none drop-shadow-[0_0_20px_rgba(0,242,255,0.5)]">
-                {score.toString().padStart(6, '0')}
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-4 sm:gap-5 w-full max-w-[260px] sm:max-w-[280px]">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleStateChange(GameState.PLAYING)}
-                className="flex items-center justify-center gap-3 bg-[#00f2ff] text-black w-full py-4 sm:py-5 rounded-full font-black tracking-tight text-base sm:text-lg shadow-[0_0_30px_rgba(0,242,255,0.3)]"
-              >
-                <PlayCircle size={20} fill="currentColor" />
-                RESUME FLIGHT
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  handleStateChange(GameState.START);
-                  setTimeout(() => handleStateChange(GameState.PLAYING), 80);
-                }}
-                className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 text-white w-full py-4 sm:py-5 rounded-full font-black tracking-tight text-base sm:text-lg backdrop-blur-md"
-              >
-                <RefreshCw size={20} />
-                RESTART CORE
-              </motion.button>
-            </div>
-            
-            <button 
-              onClick={() => handleStateChange(GameState.START)}
-              className="mt-12 flex items-center gap-3 text-white/30 text-[9px] font-black uppercase tracking-[0.4em] hover:text-white transition-colors"
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex flex-col items-center w-full max-w-sm"
             >
-              <Home size={14} />
-              RETURN TO MENU
-            </button>
+              <h2 className="text-5xl sm:text-7xl font-black italic tracking-tighter text-white mb-2 leading-none text-center">SYSTEM PAUSED</h2>
+              
+              <div className="w-full h-px bg-white/10 my-8 sm:my-10" />
+
+              <div className="flex flex-col items-center mb-10 sm:mb-16">
+                <span className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] text-white/30 mb-2">LIVE DATA SYNC</span>
+                <span className="text-4xl sm:text-6xl font-mono font-bold text-[#00f2ff] tabular-nums tracking-widest leading-none drop-shadow-[0_0_30px_rgba(0,242,255,0.4)]">
+                  {score.toString().padStart(6, '0')}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-4 w-full">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleStateChange(GameState.PLAYING)}
+                  className="flex items-center justify-center gap-3 bg-[#00f2ff] text-black w-full py-5 sm:py-6 rounded-3xl font-black tracking-tight text-lg sm:text-xl shadow-[0_0_30px_rgba(0,242,255,0.3)] transition-all"
+                >
+                  <PlayCircle size={24} fill="currentColor" />
+                  RESUME MISSION
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    handleStateChange(GameState.START);
+                    setTimeout(() => handleStateChange(GameState.PLAYING), 100);
+                  }}
+                  className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 text-white w-full py-5 rounded-3xl font-black tracking-tight text-lg backdrop-blur-md transition-all hover:bg-white/10"
+                >
+                  <RefreshCw size={22} />
+                  RESTART CORE
+                </motion.button>
+              </div>
+              
+              <button 
+                onClick={() => handleStateChange(GameState.START)}
+                className="mt-12 flex items-center gap-3 text-white/30 text-[10px] font-black uppercase tracking-[0.4em] hover:text-white transition-colors"
+              >
+                <Home size={16} />
+                EXIT TO MENU
+              </button>
+            </motion.div>
           </motion.div>
         )}
 

@@ -210,12 +210,12 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             // 1. Sleek Body (Neon Blue)
             ctx.fillStyle = '#00f2ff';
             ctx.beginPath();
-            // Main aerodynamic body
+            // Aerodynamic flappy-style body
             ctx.moveTo(-20, -10);
-            ctx.quadraticCurveTo(0, -22, 25, -2); // Top curve
-            ctx.lineTo(35, 0); // Beak tip
+            ctx.quadraticCurveTo(0, -22, 25, -2); // Top
+            ctx.lineTo(35, 0); // Beak
             ctx.lineTo(25, 4); // Bottom beak
-            ctx.quadraticCurveTo(0, 20, -20, 10); // Bottom curve
+            ctx.quadraticCurveTo(0, 20, -20, 10); // Bottom
             ctx.closePath();
             ctx.fill();
             
@@ -234,44 +234,15 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.closePath();
             ctx.fill();
             
-            // 4. Energy Flap Animation (Subtle oscillation)
-            const flapSpeed = body.speed > 2 ? 0.04 : 0.02;
-            const flapOsc = Math.sin(now * flapSpeed) * 0.3;
-            
-            ctx.save();
-            ctx.translate(-2, -2);
-            ctx.rotate(flapOsc);
-            
-            // Primary Flap
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2.5;
+            // 4. Stable Energy Halo (No wings)
+            ctx.shadowBlur = 0;
+            const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 45);
+            glow.addColorStop(0, 'rgba(0, 242, 255, 0.25)');
+            glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
+            ctx.fillStyle = glow;
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(-15, -12);
-            ctx.stroke();
-            
-            // Secondary Glow Trait
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(-5, 0);
-            ctx.lineTo(-20, -8);
-            ctx.stroke();
-            ctx.restore();
-            
-            // 5. Symmetric Bottom Flap
-            ctx.save();
-            ctx.translate(-2, 2);
-            ctx.rotate(-flapOsc * 0.5); // Antisymmetric movement
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(-12, 10);
-            ctx.stroke();
-            ctx.restore();
-            
-            // 6. Overall Glow Core
+            ctx.arc(0, 0, 45, 0, Math.PI * 2);
+            ctx.fill();
 
             ctx.restore();
         } else if (body.label === 'obstacle') {
