@@ -109,8 +109,8 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
         const bgOffset = -(playerX * bgParallax) % forestWidth;
         
         ctx.save();
-        ctx.globalAlpha = 0.2 + Math.sin(pulseTime) * 0.05;
-        ctx.filter = 'blur(4px) brightness(0.5) hue-rotate(20deg)';
+        ctx.globalAlpha = 0.15 + Math.sin(pulseTime) * 0.03;
+        // Optimization: Removing filter='blur(4px) brightness(0.5) hue-rotate(20deg)' as it is very slow
         for (let i = -1; i <= 1; i++) {
             ctx.drawImage(forestImg.current, bgOffset + (i * forestWidth), -50, forestWidth, forestHeight + 100);
         }
@@ -121,8 +121,8 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
         const mgOffset = -(playerX * mgParallax) % forestWidth;
         
         ctx.save();
-        ctx.globalAlpha = 0.4;
-        ctx.filter = 'blur(1px) brightness(0.8)';
+        ctx.globalAlpha = 0.35;
+        // Optimization: Removing filter='blur(1px) brightness(0.8)'
         for (let i = -1; i <= 1; i++) {
             ctx.drawImage(forestImg.current, mgOffset + (i * forestWidth), 0, forestWidth, forestHeight);
         }
@@ -133,20 +133,22 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
         const fgOffset = -(playerX * fgParallax) % forestWidth;
         
         ctx.save();
-        ctx.globalAlpha = 0.12;
-        ctx.filter = 'brightness(1.5) contrast(1.2) blur(10px)'; // Create depth blur
+        ctx.globalAlpha = 0.1;
+        // Optimization: Removing filter='brightness(1.5) contrast(1.2) blur(10px)'
         for (let i = -1; i <= 1; i++) {
             ctx.drawImage(forestImg.current, fgOffset + (i * forestWidth), -100, forestWidth * 1.3, forestHeight * 1.3);
         }
         ctx.restore();
       }
 
-      // Add a very subtle scanline effect
+      // Add a very subtle scanline effect - Optimized loop
       ctx.save();
-      ctx.globalAlpha = 0.03;
+      ctx.globalAlpha = 0.02;
       ctx.fillStyle = '#000000';
-      for (let i = 0; i < dimensions.height; i += 4) {
-          ctx.fillRect(0, i, dimensions.width, 1);
+      const scanlineHeight = 1;
+      const scanlineGap = 4;
+      for (let i = 0; i < dimensions.height; i += scanlineGap) {
+          ctx.fillRect(0, i, dimensions.width, scanlineHeight);
       }
       ctx.restore();
 
@@ -189,7 +191,7 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             ctx.beginPath();
             ctx.fillStyle = '#f0ff00';
             ctx.arc(body.position.x, body.position.y, 15, 0, Math.PI * 2);
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 12;
             ctx.shadowColor = '#f0ff00';
             ctx.fill();
             ctx.shadowBlur = 0;
@@ -226,7 +228,7 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             ctx.rotate(rotation);
 
             if (birdImg.current) {
-                ctx.shadowBlur = 25;
+                ctx.shadowBlur = 15;
                 ctx.shadowColor = '#00f2ff';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
                 ctx.shadowBlur = 0;
@@ -267,7 +269,7 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             pillarGrad.addColorStop(1, '#1a0008');
 
             // Draw Pillar
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 12;
             ctx.shadowColor = '#ff0055';
             ctx.fillStyle = pillarGrad;
             ctx.beginPath();
@@ -306,7 +308,7 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             tipGrad.addColorStop(isTopPipe ? 1 : 0, '#ffffff');
 
             ctx.fillStyle = tipGrad;
-            ctx.shadowBlur = 30;
+            ctx.shadowBlur = 20;
             ctx.shadowColor = '#ffffff';
             ctx.fillRect(cx - width/2 - 5, tipY, width + 10, capHeight);
             ctx.shadowBlur = 0;

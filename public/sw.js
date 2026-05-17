@@ -1,10 +1,11 @@
-const CACHE_NAME = 'neon-flap-v2';
+const CACHE_NAME = 'neon-flap-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icon-512.png',
-  '/logo-banner.png'
+  '/forest-bg.png',
+  '/bird.png'
 ];
 
 // Install event: cache static assets
