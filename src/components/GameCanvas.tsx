@@ -141,13 +141,14 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
       ctx.save();
       ctx.translate(offsetX, offsetY);
 
-      // Draw grid
-      ctx.strokeStyle = 'rgba(0, 242, 255, 0.02)'; // Even more subtle grid to prevent 'boxy' appearance
+      // Draw grid (Optimized with tighter bounds)
+      ctx.strokeStyle = 'rgba(0, 242, 255, 0.015)'; 
       ctx.lineWidth = 1;
       const gridSize = 150;
-      const startX = Math.floor(playerX / gridSize) * gridSize - 1500;
+      const startX = Math.floor(playerX / gridSize) * gridSize - gridSize;
+      const endX = startX + dimensions.width + gridSize * 2;
       ctx.beginPath();
-      for (let x = startX; x < startX + dimensions.width + 3000; x += gridSize) {
+      for (let x = startX; x < endX; x += gridSize) {
         ctx.moveTo(x, 0);
         ctx.lineTo(x, dimensions.height);
       }
@@ -191,7 +192,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.lineTo(body.position.x, dimensions.height);
             ctx.stroke();
         } else if (body.label === 'player') {
-            const size = 58; // Slightly smaller to look sharper
+            const size = 58; 
             const time = now * 0.004;
             // Subtle idle sway (vertical and rotational)
             const swayY = Math.sin(time) * 4;
@@ -206,22 +207,24 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
             if (birdImg.current) {
                 ctx.save();
-                // Extremely tight circular clipping path to remove any box edges
+                // Tight circular clipping path to ensure no rectangular artifacts remain
                 ctx.beginPath();
-                ctx.arc(0, 0, size/2 - 7, 0, Math.PI * 2);
+                ctx.arc(0, 0, size/2 - 8, 0, Math.PI * 2);
                 ctx.clip();
                 
-                // Screen composite to blend neon highlights
+                // Screen composite to blend neon highlights and eliminate pure black background
                 ctx.globalCompositeOperation = 'screen';
-                ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
+                // Crop the source image slightly (10px padding) to avoid edge noise
+                ctx.drawImage(birdImg.current, 10, 10, 492, 492, -size/2, -size/2, size, size);
                 ctx.restore();
                 
-                // Outer core glow for better integration
+                // Outer core glow for better atmospheric integration
                 ctx.save();
                 ctx.globalCompositeOperation = 'screen';
                 ctx.beginPath();
-                const glow = ctx.createRadialGradient(0, 0, size/4, 0, 0, size/2);
+                const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
                 glow.addColorStop(0, 'rgba(0, 242, 255, 0.4)');
+                glow.addColorStop(0.6, 'rgba(0, 242, 255, 0.1)');
                 glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
                 ctx.fillStyle = glow;
                 ctx.arc(0, 0, size/2, 0, Math.PI * 2);
@@ -239,36 +242,41 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
             const isTopPipe = cy < dimensions.height / 2;
 
-            // Pillar Body - Deep Blood Red Gradient for 3D feel
+            // Pillar Body - Deep Red Gradient with rounded corners
             const bodyGradient = ctx.createLinearGradient(cx - width/2, 0, cx + width/2, 0);
-            bodyGradient.addColorStop(0, '#2a0000');
-            bodyGradient.addColorStop(0.5, '#4a0000');
-            bodyGradient.addColorStop(1, '#2a0000');
+            bodyGradient.addColorStop(0, '#1a0000');
+            bodyGradient.addColorStop(0.5, '#3a0000');
+            bodyGradient.addColorStop(1, '#1a0000');
             ctx.fillStyle = bodyGradient;
-            ctx.fillRect(cx - width/2, cy - height/2, width, height);
+            
+            // Draw with rounded corners for 'user friendly' aesthetic
+            ctx.beginPath();
+            if (isTopPipe) {
+                ctx.roundRect(cx - width/2, cy - height/2, width, height, [0, 0, 10, 10]);
+            } else {
+                ctx.roundRect(cx - width/2, cy - height/2, width, height, [10, 10, 0, 0]);
+            }
+            ctx.fill();
             
             // Vibrant Neon Red Highlights
             ctx.strokeStyle = '#ff1144';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(cx - width/2, cy - height/2, width, height);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
             
-            // Subtle scanlines on pipes
-            ctx.fillStyle = 'rgba(0,0,0,0.1)';
-            for (let y = cy - height/2; y < cy + height/2; y += 4) {
-                ctx.fillRect(cx - width/2, y, width, 1);
-            }
-
-            // Energy Tip
-            const capHeight = 14;
+            // Energy Tip (Rounded)
+            const capHeight = 16;
             const tipY = isTopPipe ? (cy + height/2 - capHeight) : (cy - height/2);
             
-            // Glowing tip core - Crimson Pulse
             ctx.fillStyle = '#ff1144';
-            ctx.fillRect(cx - width/2 - 4, tipY, width + 8, capHeight);
+            ctx.beginPath();
+            ctx.roundRect(cx - width/2 - 4, tipY, width + 8, capHeight, 6);
+            ctx.fill();
             
-            // White hot energy center - Pure highlight
+            // White hot energy center
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(cx - width/2 + 10, tipY + 4, width - 20, capHeight - 8);
+            ctx.beginPath();
+            ctx.roundRect(cx - width/2 + 8, tipY + 4, width - 16, capHeight - 8, 4);
+            ctx.fill();
         } else if (body.label === 'ground') {
             // Not explicitly drawn box for ground, but we could add a floor line
         }

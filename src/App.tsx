@@ -16,16 +16,10 @@ export default function App() {
   const scoreRef = useRef(0);
   const [highScore, setHighScore] = useState<number>(() => {
     const saved = localStorage.getItem('neon-flap-highscore');
-    if (saved) return parseInt(saved, 10);
-    const legacy = localStorage.getItem('neon-flap-highscores');
-    if (legacy) {
-      const scores = JSON.parse(legacy);
-      return Array.isArray(scores) ? scores[0] : 0;
-    }
-    return 0;
+    return saved ? parseInt(saved, 10) : 0;
   });
   const [isNewRecordReached, setIsNewRecordReached] = useState(false);
-  const displayedBest = Math.max(highScore, score);
+  const displayedBest = highScore;
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -68,29 +62,28 @@ export default function App() {
     scoreRef.current = newScore;
     setScore(newScore);
     
-    // Check for highscore during gameplay
-    if (newScore > highScore && !isNewRecordReached) {
-      setIsNewRecordReached(true);
-      soundManager.playLevelUp();
+    // Auto-update highscore in real-time for 'record one ulit'
+    if (newScore > highScore) {
+      setHighScore(newScore);
+      localStorage.setItem('neon-flap-highscore', newScore.toString());
+      if (!isNewRecordReached) {
+        setIsNewRecordReached(true);
+        soundManager.playLevelUp();
+      }
     }
   }, [highScore, isNewRecordReached]);
 
   const handleStateChange = useCallback((newState: GameState) => {
     setGameState(newState);
     if (newState === GameState.PLAYING) {
-      setIsNewRecordReached(false);
+      if (gameState === GameState.START || gameState === GameState.GAME_OVER || gameState === GameState.WIN) {
+          // Score is already reset by GameManager, but we reset UI state here
+          setScore(0);
+          scoreRef.current = 0;
+          setIsNewRecordReached(false);
+      }
     }
-    if (newState === GameState.GAME_OVER || newState === GameState.WIN) {
-      setHighScore(prev => {
-          const currentScore = scoreRef.current;
-          if (currentScore > prev) {
-            localStorage.setItem('neon-flap-highscore', currentScore.toString());
-            return currentScore;
-          }
-          return prev;
-      });
-    }
-  }, []);
+  }, [gameState]);
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] text-white font-sans overflow-hidden select-none">
