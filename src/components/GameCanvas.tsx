@@ -204,21 +204,24 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.rotate(velocityRot + swayRot);
 
             if (birdImg.current) {
-                // Using a slightly more aggressive clip to shave off any edge pixels from the sprite box
+                // 1. Double-Layer Masking to kill the "Box"
+                // First clip tightly
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(0, 0, (size/2) - 4, 0, Math.PI * 2);
+                ctx.arc(0, 0, (size/2) - 10, 0, Math.PI * 2);
                 ctx.clip();
                 
+                // Then draw using SCREEN composite to handle black pixels
                 ctx.globalCompositeOperation = 'screen';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
                 ctx.restore();
 
-                // Add a glow that matches the neon bird
+                // 2. Add an intense neon core glow to 'seal' the character
                 const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
-                glow.addColorStop(0, 'rgba(0, 242, 255, 0.5)');
+                glow.addColorStop(0, 'rgba(0, 242, 255, 0.6)');
                 glow.addColorStop(0.4, 'rgba(0, 242, 255, 0.2)');
                 glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
+                
                 ctx.globalCompositeOperation = 'screen';
                 ctx.fillStyle = glow;
                 ctx.beginPath();

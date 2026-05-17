@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameState } from './game/GameManager';
 import GameCanvas from './components/GameCanvas';
 import { soundManager } from './game/SoundManager';
-import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home } from 'lucide-react';
+import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home, RefreshCw } from 'lucide-react';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
@@ -52,9 +52,13 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState]);
 
+  // Real-time record detection
   useEffect(() => {
-    if (score > highScore && highScore > 0 && !isNewRecordReached && gameState === GameState.PLAYING) {
-      setIsNewRecordReached(true);
+    if (score > highScore && highScore > 0 && gameState === GameState.PLAYING) {
+      if (!isNewRecordReached) {
+        setIsNewRecordReached(true);
+        soundManager.playLevelUp();
+      }
     }
   }, [score, highScore, isNewRecordReached, gameState]);
 
@@ -62,22 +66,17 @@ export default function App() {
     scoreRef.current = newScore;
     setScore(newScore);
     
-    // Auto-update highscore in real-time for 'record one ulit'
+    // Auto-update highscore in real-time
     if (newScore > highScore) {
       setHighScore(newScore);
       localStorage.setItem('neon-flap-highscore', newScore.toString());
-      if (!isNewRecordReached) {
-        setIsNewRecordReached(true);
-        soundManager.playLevelUp();
-      }
     }
-  }, [highScore, isNewRecordReached]);
+  }, [highScore]);
 
   const handleStateChange = useCallback((newState: GameState) => {
     setGameState(newState);
     if (newState === GameState.PLAYING) {
       if (gameState === GameState.START || gameState === GameState.GAME_OVER || gameState === GameState.WIN) {
-          // Score is already reset by GameManager, but we reset UI state here
           setScore(0);
           scoreRef.current = 0;
           setIsNewRecordReached(false);
@@ -96,19 +95,30 @@ export default function App() {
         />
       </div>
 
-      <div className="absolute top-10 left-8 z-10 pointer-events-none select-none">
+      <div className="absolute top-8 left-8 z-10 pointer-events-none select-none">
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[#00f2ff] opacity-40 mb-1">
             <Zap size={10} fill="currentColor" />
             <span className="text-[8px] font-black tracking-[0.3em] uppercase">2026 EDITION</span>
           </div>
           <div className="flex flex-col">
-            <div className={`text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_25px_rgba(240,255,0,0.7)] animate-pulse' : 'text-white/90'}`}>
+            <div className={`text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/90'}`}>
               {score.toString().padStart(6, '0')}
             </div>
-            <div className="flex flex-col mt-2 ml-1 opacity-20">
+            
+            {isNewRecordReached && (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="absolute -right-24 top-6 text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-2 py-0.5 rounded border border-[#f0ff00]/20 rotate-12"
+              >
+                RECORD SYNCED
+              </motion.div>
+            )}
+
+            <div className="flex flex-col mt-2 ml-1 opacity-30">
               <span className="text-[7px] uppercase font-black tracking-[0.4em] leading-none mb-1">BEST</span>
-              <span className="text-xs font-mono font-bold leading-none tabular-nums">
+              <span className="text-sm font-mono font-bold leading-none tabular-nums">
                 {displayedBest.toString().padStart(6, '0')}
               </span>
             </div>
