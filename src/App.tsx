@@ -93,24 +93,10 @@ export default function App() {
 
       <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-40 pointer-events-none select-none">
         <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 text-[#00f2ff] opacity-60 mb-1">
-            <Zap size={10} fill="currentColor" />
-            <span className="text-[7px] font-black tracking-widest uppercase">NODE-SYNC ACTIVE</span>
-          </div>
           <div className="flex flex-col">
             <div className={`text-4xl sm:text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/95'}`}>
               {score.toString().padStart(6, '0')}
             </div>
-            
-            {isNewRecordReached && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute -right-20 sm:-right-24 top-5 sm:top-6 text-[7px] sm:text-[8px] font-black uppercase text-[#f0ff00] bg-[#f0ff00]/10 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border border-[#f0ff00]/20 rotate-12 drop-shadow-[0_0_10px_rgba(240,255,0,0.5)]"
-              >
-                BEST SYNCED
-              </motion.div>
-            )}
 
             <div className="flex flex-col mt-1 ml-1 opacity-40">
               <span className="text-[6px] uppercase font-black tracking-[0.4em] leading-none mb-1">BEST</span>
@@ -163,7 +149,7 @@ export default function App() {
                 </h1>
               </div>
               <p className="text-white/40 text-[7px] xs:text-[8px] md:text-xs tracking-[0.4em] sm:tracking-[0.6em] text-center mt-3 sm:mt-6 font-black uppercase">
-                SURVIVE THE SURGE. MASTER THE GRID.
+                FLAP TO SURVIVE.
               </p>
             </motion.div>
             
@@ -204,47 +190,50 @@ export default function App() {
           <motion.div 
             key="paused"
             initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, backdropFilter: 'blur(12px)' }}
+            animate={{ opacity: 1, backdropFilter: 'blur(16px)' }}
             exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/40"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/70 p-6"
           >
-            <h2 className="text-7xl font-black italic tracking-tighter text-white mb-2 leading-none">PAUSED</h2>
-            <div className="flex flex-col items-center mb-16">
-              <span className="text-[10px] uppercase font-black tracking-[0.4em] text-white/40 mb-2">CURRENT SYNC</span>
-              <span className="text-4xl font-mono font-bold text-[#00f2ff] tabular-nums tracking-widest leading-none drop-shadow-[0_0_20px_rgba(0,242,255,0.5)]">
+            <h2 className="text-5xl sm:text-7xl font-black italic tracking-tighter text-white mb-2 leading-none text-center">SYSTEM PAUSED</h2>
+            <div className="flex flex-col items-center mb-10 sm:mb-16">
+              <span className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] text-white/40 mb-2">CURRENT SYNC</span>
+              <span className="text-3xl sm:text-4xl font-mono font-bold text-[#00f2ff] tabular-nums tracking-widest leading-none drop-shadow-[0_0_20px_rgba(0,242,255,0.5)]">
                 {score.toString().padStart(6, '0')}
               </span>
             </div>
 
-            <div className="flex flex-col gap-5 w-full max-w-[280px]">
-              <button
+            <div className="flex flex-col gap-4 sm:gap-5 w-full max-w-[260px] sm:max-w-[280px]">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => handleStateChange(GameState.PLAYING)}
-                className="flex items-center justify-center gap-3 bg-[#00f2ff] text-black w-full py-5 rounded-full font-black tracking-tight text-lg shadow-[0_0_30px_rgba(0,242,255,0.3)] hover:scale-105 active:scale-95 transition-all text-center"
+                className="flex items-center justify-center gap-3 bg-[#00f2ff] text-black w-full py-4 sm:py-5 rounded-full font-black tracking-tight text-base sm:text-lg shadow-[0_0_30px_rgba(0,242,255,0.3)]"
               >
-                <div className="w-3 h-3 rounded-full bg-black animate-pulse" />
+                <PlayCircle size={20} fill="currentColor" />
                 RESUME FLIGHT
-              </button>
-              <button
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   handleStateChange(GameState.START);
-                  setTimeout(() => handleStateChange(GameState.PLAYING), 50);
+                  setTimeout(() => handleStateChange(GameState.PLAYING), 80);
                 }}
-                className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 text-white w-full py-5 rounded-full font-black tracking-tight text-lg hover:bg-white/10 active:scale-95 transition-all backdrop-blur-md"
+                className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 text-white w-full py-4 sm:py-5 rounded-full font-black tracking-tight text-base sm:text-lg backdrop-blur-md"
               >
                 <RefreshCw size={20} />
-                RESTART
-              </button>
+                RESTART CORE
+              </motion.button>
             </div>
             
             <button 
               onClick={() => handleStateChange(GameState.START)}
-              className="mt-10 flex items-center gap-3 text-white/30 text-[10px] font-black uppercase tracking-[0.4em] hover:text-white transition-colors"
+              className="mt-12 flex items-center gap-3 text-white/30 text-[9px] font-black uppercase tracking-[0.4em] hover:text-white transition-colors"
             >
               <Home size={14} />
               RETURN TO MENU
             </button>
-            
-            <div className="mt-16 text-[8px] font-mono text-white/10 tracking-[0.6em] uppercase font-black">SYSTEM STABILIZED</div>
           </motion.div>
         )}
 

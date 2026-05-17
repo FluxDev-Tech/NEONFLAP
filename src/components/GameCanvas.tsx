@@ -200,41 +200,79 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.save();
             ctx.translate(body.position.x, body.position.y + swayY);
             
-            const velocityRot = Math.max(-0.3, Math.min(0.5, body.velocity.y * 0.04));
+            const velocityRot = Math.max(-0.4, Math.min(0.7, body.velocity.y * 0.05));
             ctx.rotate(velocityRot);
 
-            if (birdImg.current) {
-                // Perfect Orb Core Rendering - Ultimate "Box" Eradication
-                ctx.save();
-                
-                // 1. Deep Aggressive Clipping (16px shave)
-                ctx.beginPath();
-                ctx.arc(0, 0, (size/2) - 16, 0, Math.PI * 2);
-                ctx.clip();
-                
-                // 2. High-contrast Screen Blend
-                ctx.filter = 'contrast(1.8) brightness(1.2)';
-                ctx.globalCompositeOperation = 'screen';
-                ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
-                
-                ctx.restore();
+            // Draw Custom Neon Bird silhouette - "Remove that wings" version
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00f2ff';
+            
+            // 1. Sleek Body (Neon Blue)
+            ctx.fillStyle = '#00f2ff';
+            ctx.beginPath();
+            // Main aerodynamic body
+            ctx.moveTo(-20, -10);
+            ctx.quadraticCurveTo(0, -22, 25, -2); // Top curve
+            ctx.lineTo(35, 0); // Beak tip
+            ctx.lineTo(25, 4); // Bottom beak
+            ctx.quadraticCurveTo(0, 20, -20, 10); // Bottom curve
+            ctx.closePath();
+            ctx.fill();
+            
+            // 2. High-Tech Cockpit/Eye
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.ellipse(12, -4, 5, 3, 0.4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 3. Engine Core (Neon Pink Tail/Rear)
+            ctx.fillStyle = '#ff0055';
+            ctx.beginPath();
+            ctx.moveTo(-18, -8);
+            ctx.lineTo(-28, 0);
+            ctx.lineTo(-18, 8);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 4. Energy Flap Animation (Subtle oscillation)
+            const flapSpeed = body.speed > 2 ? 0.04 : 0.02;
+            const flapOsc = Math.sin(now * flapSpeed) * 0.3;
+            
+            ctx.save();
+            ctx.translate(-2, -2);
+            ctx.rotate(flapOsc);
+            
+            // Primary Flap
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-15, -12);
+            ctx.stroke();
+            
+            // Secondary Glow Trait
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-5, 0);
+            ctx.lineTo(-20, -8);
+            ctx.stroke();
+            ctx.restore();
+            
+            // 5. Symmetric Bottom Flap
+            ctx.save();
+            ctx.translate(-2, 2);
+            ctx.rotate(-flapOsc * 0.5); // Antisymmetric movement
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-12, 10);
+            ctx.stroke();
+            ctx.restore();
+            
+            // 6. Overall Glow Core
 
-                // 3. Post-Process Bloom Seals
-                ctx.save();
-                const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size/2);
-                glow.addColorStop(0, 'rgba(0, 242, 255, 0.95)');
-                glow.addColorStop(0.25, 'rgba(0, 242, 255, 0.4)');
-                glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
-                
-                ctx.globalCompositeOperation = 'screen';
-                ctx.fillStyle = glow;
-                ctx.beginPath();
-                ctx.arc(0, 0, size * 0.8, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-                
-                ctx.filter = 'none';
-            }
             ctx.restore();
         } else if (body.label === 'obstacle') {
             const vertices = body.vertices;
