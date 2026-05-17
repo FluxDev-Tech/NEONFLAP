@@ -71,29 +71,28 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
           trailRef.current.unshift({ 
               x: manager.player.position.x, 
               y: manager.player.position.y, 
-              alpha: 0.6 
+              alpha: 0.5 
           });
-          if (trailRef.current.length > 15) trailRef.current.pop();
+          if (trailRef.current.length > 12) trailRef.current.pop();
+          trailRef.current.forEach(p => p.alpha *= 0.88);
       }
-      trailRef.current.forEach(p => p.alpha *= 0.9);
 
       // Trigger shake on score increase
       if (manager.score > lastScoreRef.current) {
-          shakeRef.current = 15; // Increased shake
+          shakeRef.current = 10;
           lastScoreRef.current = manager.score;
       }
       
       // Decay shake
-      shakeRef.current *= 0.92;
+      shakeRef.current *= 0.85;
       if (shakeRef.current < 0.1) shakeRef.current = 0;
 
-      const shakeX = (Math.random() - 0.5) * shakeRef.current;
-      const shakeY = (Math.random() - 0.5) * shakeRef.current;
+      const shakeX = shakeRef.current > 0 ? (Math.random() - 0.5) * shakeRef.current : 0;
+      const shakeY = shakeRef.current > 0 ? (Math.random() - 0.5) * shakeRef.current : 0;
       
       // Deep Background sky
       const pulseTime = Date.now() * 0.001;
-      const bgPulse = Math.sin(pulseTime * 0.5) * 5;
-      ctx.fillStyle = `rgb(${5 + bgPulse}, ${5 + bgPulse}, ${15 + bgPulse})`;
+      ctx.fillStyle = '#050510';
       ctx.fillRect(0, 0, dimensions.width, dimensions.height);
 
       const playerX = manager.player?.position.x || 0;
@@ -141,16 +140,11 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
         ctx.restore();
       }
 
-      // Add a very subtle scanline effect - Optimized loop
-      ctx.save();
-      ctx.globalAlpha = 0.02;
-      ctx.fillStyle = '#000000';
-      const scanlineHeight = 1;
-      const scanlineGap = 4;
-      for (let i = 0; i < dimensions.height; i += scanlineGap) {
-          ctx.fillRect(0, i, dimensions.width, scanlineHeight);
+      // Add a very subtle scanline effect - Optimized
+      ctx.fillStyle = 'rgba(0,0,0,0.01)';
+      for (let i = 0; i < dimensions.height; i += 8) {
+          ctx.fillRect(0, i, dimensions.width, 2);
       }
-      ctx.restore();
 
       // Camera logic: follow player
       const offsetX = -playerX + 200 + shakeX;
@@ -170,31 +164,34 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
       ctx.globalAlpha = 1.0;
 
       // Draw grid
-      ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
+      ctx.strokeStyle = 'rgba(0, 242, 255, 0.03)';
       ctx.lineWidth = 1;
-      const gridSize = 100;
-      const startX = Math.floor(playerX / gridSize) * gridSize - 1000;
-      for (let x = startX; x < startX + dimensions.width + 2000; x += gridSize) {
-        ctx.beginPath();
+      const gridSize = 120;
+      const startX = Math.floor(playerX / gridSize) * gridSize - 1200;
+      ctx.beginPath();
+      for (let x = startX; x < startX + dimensions.width + 2400; x += gridSize) {
         ctx.moveTo(x, 0);
         ctx.lineTo(x, dimensions.height);
-        ctx.stroke();
       }
+      ctx.stroke();
+
+      // Culling bounds
+      const viewLeft = playerX - 400;
+      const viewRight = playerX + dimensions.width + 100;
 
       // Draw Bodies
       const bodies = manager.world.bodies;
       bodies.forEach(body => {
-        // Handle transparency for sensors
-        ctx.globalAlpha = body.isSensor ? 0.5 : 1.0;
+        // Simple Culling
+        if (body.label !== 'player' && body.label !== 'ground') {
+            if (body.position.x < viewLeft || body.position.x > viewRight) return;
+        }
 
         if (body.label === 'collectible') {
             ctx.beginPath();
             ctx.fillStyle = '#f0ff00';
             ctx.arc(body.position.x, body.position.y, 15, 0, Math.PI * 2);
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = '#f0ff00';
             ctx.fill();
-            ctx.shadowBlur = 0;
             
             // Inner core
             ctx.beginPath();
@@ -228,7 +225,7 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             ctx.rotate(rotation);
 
             if (birdImg.current) {
-                ctx.shadowBlur = 15;
+                ctx.shadowBlur = 10;
                 ctx.shadowColor = '#00f2ff';
                 ctx.drawImage(birdImg.current, -size/2, -size/2, size, size);
                 ctx.shadowBlur = 0;
@@ -243,14 +240,12 @@ export default function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: 
             // Wing animation
             ctx.beginPath();
             ctx.fillStyle = '#ffffff';
-            ctx.globalAlpha = 0.8;
-            const wingWidth = 25;
-            const wingHeight = 15;
-            const flapOffset = flapAnimRef.current > 0.1 ? -15 : flapY;
+            ctx.globalAlpha = 0.6;
+            const wingWidth = 20;
+            const wingHeight = 12;
+            const flapOffset = flapAnimRef.current > 0.1 ? -12 : flapY;
             
             ctx.ellipse(-5, 0 + flapOffset, wingWidth / 2, wingHeight / 2, -0.2, 0, Math.PI * 2);
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#ffffff';
             ctx.fill();
             ctx.restore();
         } else if (body.label === 'obstacle') {

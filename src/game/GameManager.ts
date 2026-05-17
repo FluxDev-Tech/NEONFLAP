@@ -60,9 +60,9 @@ export class GameManager {
     Matter.World.add(this.world, [this.player, ground, ceiling]);
 
     // Create flappy pipes
-    const gapSize = 220; // Increased gap for easier gameplay
+    const gapSize = 250; // Further increased gap for easier gameplay
     for (let i = 0; i < 50; i++) {
-        const x = 800 + i * 500; // More space between pipes
+        const x = 800 + i * 650; // Even more space between pipes (from 500 to 650)
         const minH = 50;
         const maxH = height - gapSize - minH;
         const topPipeH = minH + Math.random() * maxH;
@@ -94,7 +94,7 @@ export class GameManager {
         Matter.World.add(this.world, scoreTrigger);
 
         // Random collectible in some gaps
-        if (Math.random() > 0.7) {
+        if (Math.random() > 0.6) { // More collectibles (from 0.7 to 0.6)
             const collY = topPipeH + gapSize/2;
             const coll = Matter.Bodies.circle(x + 200, collY + (Math.random() - 0.5) * 100, 15, {
                 isStatic: true,
@@ -107,7 +107,7 @@ export class GameManager {
     }
 
     // Win trigger
-    const winTrigger = Matter.Bodies.rectangle(600 + 50 * 400 + 500, height / 2, 100, height, {
+    const winTrigger = Matter.Bodies.rectangle(600 + 50 * 550 + 500, height / 2, 100, height, {
         isStatic: true,
         isSensor: true,
         label: 'win'
@@ -164,8 +164,8 @@ export class GameManager {
   public update() {
     if (this.gameState === GameState.PLAYING && this.player) {
       // Gradually increase speed based on score (slower progression)
-      const baseSpeed = 3.5;
-      const speedIncrease = Math.min(3.0, this.score / 500); 
+      const baseSpeed = 3.2; // Slightly slower start (from 3.5 to 3.2)
+      const speedIncrease = Math.min(2.5, this.score / 750); // Slower increase (from 500 to 750)
       const currentSpeed = baseSpeed + speedIncrease;
 
       // Forward motion
