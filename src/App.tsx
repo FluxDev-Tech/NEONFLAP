@@ -208,24 +208,43 @@ export default function App() {
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="flex flex-col items-center px-4"
+              className="flex flex-col items-center px-4 w-full max-w-sm"
             >
-              <h2 className="text-5xl sm:text-7xl font-black text-white mb-8 tracking-tighter uppercase italic">Paused</h2>
-              <button 
-                onClick={() => handleStateChange(GameState.PLAYING)}
-                className="group flex items-center gap-4 bg-[#00f2ff] text-black px-10 py-5 sm:px-12 sm:py-6 rounded-full font-bold text-lg sm:text-xl hover:scale-105 transition-transform cursor-pointer"
-              >
-                <PlayCircle fill="currentColor" size={28} />
-                RESUME FLIGHT
-              </button>
-              <button 
-                onClick={() => handleStateChange(GameState.START)}
-                className="mt-4 flex items-center gap-2 text-white/40 hover:text-white transition-colors uppercase text-[10px] font-mono tracking-widest"
-              >
-                <Home size={14} />
-                Return to Menu
-              </button>
-              <p className="mt-6 text-white/40 text-[10px] font-mono uppercase tracking-[0.2em]">P or Tap to resume</p>
+              <h2 className="text-5xl sm:text-7xl font-black text-white mb-2 tracking-tighter uppercase italic">Paused</h2>
+              <div className="mb-8 flex flex-col items-center">
+                <span className="text-white/40 text-[10px] uppercase tracking-widest mb-1">Current Sync</span>
+                <span className="text-2xl font-mono font-bold text-[#00f2ff]">{score.toString().padStart(6, '0')}</span>
+              </div>
+              
+              <div className="flex flex-col gap-3 w-full px-8">
+                <button 
+                  onClick={() => handleStateChange(GameState.PLAYING)}
+                  className="group flex items-center justify-center gap-4 bg-[#00f2ff] text-black py-4 sm:py-5 rounded-full font-bold text-lg hover:scale-105 transition-transform cursor-pointer shadow-[0_0_20px_rgba(0,242,255,0.3)]"
+                >
+                  <PlayCircle fill="currentColor" size={24} />
+                  RESUME FLIGHT
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    handleStateChange(GameState.GAME_OVER); // Force stop current
+                    setTimeout(() => handleStateChange(GameState.PLAYING), 50); // Start fresh
+                  }}
+                  className="flex items-center justify-center gap-3 bg-white/10 text-white py-4 rounded-full font-bold hover:bg-white/20 transition-all cursor-pointer border border-white/10"
+                >
+                  <RotateCcw size={20} />
+                  RESTART
+                </button>
+                
+                <button 
+                  onClick={() => handleStateChange(GameState.START)}
+                  className="mt-2 flex items-center justify-center gap-2 text-white/40 hover:text-white transition-colors uppercase text-[10px] font-mono tracking-widest"
+                >
+                  <Home size={14} />
+                  Return to Menu
+                </button>
+              </div>
+              <p className="mt-8 text-white/30 text-[8px] font-mono uppercase tracking-[0.3em]">System Stabilized</p>
             </motion.div>
           </motion.div>
         )}

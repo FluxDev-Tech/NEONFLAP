@@ -291,6 +291,10 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
                 lastScoreRef.current = 0;
             }
             managerRef.current.setGameState(GameState.PLAYING);
+        } else if (gameState === GameState.PAUSED) {
+            managerRef.current.setGameState(GameState.PAUSED);
+        } else if (gameState === GameState.START) {
+            managerRef.current.setGameState(GameState.START);
         }
     }
   }, [gameState, dimensions]);
