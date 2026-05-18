@@ -92,14 +92,17 @@ export default function App() {
       </div>
 
       <div className="absolute top-4 left-4 sm:top-8 sm:left-8 z-40 pointer-events-none select-none">
-        <div className="flex flex-col">
+        <div className="p-4 sm:p-5 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-[0_0_30px_rgba(0,242,255,0.05)]">
           <div className="flex flex-col">
-            <div className={`text-4xl sm:text-5xl md:text-6xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/95'}`}>
+            <div className={`text-3xl sm:text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/95'}`}>
               {score.toString().padStart(6, '0')}
             </div>
 
-            <div className="flex flex-col mt-1 ml-1 opacity-50">
-              <span className="text-[6px] sm:text-[8px] uppercase font-black tracking-[0.4em] leading-none mb-1">GLOBAL BEST</span>
+            <div className="flex flex-col mt-2 opacity-50">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Trophy size={10} className="text-[#00f2ff]" />
+                <span className="text-[7px] sm:text-[9px] uppercase font-black tracking-[0.3em] leading-none">SYSTEM BEST</span>
+              </div>
               <span className="text-xs sm:text-sm font-mono font-bold leading-none tabular-nums text-[#00f2ff]">
                 {displayedBest.toString().padStart(6, '0')}
               </span>
@@ -127,62 +130,91 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md p-6"
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#03030b] p-4 sm:p-6"
           >
+            {/* Background Atmosphere */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00f2ff]/5 rounded-full blur-[120px]" />
+              <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#00f2ff]/5 to-transparent" />
+            </div>
+
             <motion.div 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6 }}
-              className="flex flex-col items-center mb-8 xs:mb-12 sm:mb-16 relative w-full"
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center relative w-full max-w-[320px] sm:max-w-xl mb-12"
             >
-              <div className="relative">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="absolute -top-3 -right-6 sm:-top-6 sm:-right-12 bg-[#ff0055] text-white text-[7px] sm:text-[10px] font-black px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded skew-x-[-12deg] tracking-widest shadow-[0_0_20px_rgba(255,0,85,0.6)] z-10 border border-white/20 whitespace-nowrap"
-                >
-                  2026 EDITION
-                </motion.div>
-                <h1 className="text-4xl xs:text-5xl sm:text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_30px_rgba(0,242,255,0.4)] leading-none text-center">
-                  NEON FLAP
-                </h1>
+              {/* Boxed Title Container */}
+              <div className="relative w-full p-8 sm:p-16 border border-[#00f2ff]/30 rounded-[40px] bg-black/40 backdrop-blur-xl overflow-hidden group shadow-[0_0_50px_rgba(0,242,255,0.1)]">
+                {/* Tech Accents */}
+                <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[#00f2ff] rounded-tl-[40px]" />
+                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[#ff0055] rounded-br-[40px]" />
+                <div className="absolute top-6 left-6 text-[#00f2ff]/20 font-mono text-[8px] tracking-[0.3em]">VERSION_2.6.0</div>
+                
+                <div className="relative z-10 flex flex-col items-center">
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="mb-2 bg-[#ff0055] text-white text-[8px] sm:text-[10px] font-black px-4 py-1 rounded-full tracking-widest shadow-[0_0_20px_rgba(255,0,85,0.4)] border border-white/10 uppercase"
+                  >
+                    Legacy Edition
+                  </motion.div>
+                  
+                  <h1 className="text-5xl sm:text-8xl lg:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_35px_rgba(0,242,255,0.3)] leading-none text-center">
+                    NEON<br className="sm:hidden" />FLAP
+                  </h1>
+                  
+                  <div className="mt-8 flex items-center gap-3">
+                    <div className="h-px w-8 bg-white/10" />
+                    <p className="text-white/40 text-[9px] sm:text-[11px] tracking-[0.5em] font-black uppercase whitespace-nowrap">
+                      Void Protocol Active
+                    </p>
+                    <div className="h-px w-8 bg-white/10" />
+                  </div>
+                </div>
+
+                {/* Animated Inner Shine */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </div>
-              <p className="text-white/40 text-[7px] xs:text-[8px] md:text-xs tracking-[0.3em] sm:tracking-[0.6em] text-center mt-3 sm:mt-6 font-black uppercase max-w-[200px] sm:max-w-none">
-                PILOT THROUGH THE VOID.
-              </p>
             </motion.div>
             
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleStateChange(GameState.PLAYING)}
-              className="pointer-events-auto flex items-center justify-center gap-3 sm:gap-4 bg-white text-black w-full max-w-[220px] sm:max-w-[320px] py-4 sm:py-6 rounded-full font-black text-base sm:text-xl tracking-tight shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all hover:bg-neutral-100 mb-6 sm:mb-8"
-            >
-              <Play size={18} className="sm:w-6 sm:h-6" fill="currentColor" />
-              INITIATE FLIGHT
-            </motion.button>
-
-            {deferredPrompt && (
+            <div className="flex flex-col items-center w-full max-w-[280px] sm:max-w-xs space-y-4">
               <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleInstallClick}
-                className="pointer-events-auto flex flex-col items-center gap-2 bg-[#00f2ff]/10 border border-[#00f2ff]/30 px-8 py-4 rounded-2xl mb-8 group transition-all hover:bg-[#00f2ff]/20"
+                onClick={() => handleStateChange(GameState.PLAYING)}
+                className="pointer-events-auto flex items-center justify-center gap-4 bg-white text-black w-full py-5 sm:py-7 rounded-2xl font-black text-lg sm:text-xl tracking-tight shadow-[0_0_50px_rgba(255,255,255,0.3)] transition-all hover:bg-neutral-100"
               >
-                <div className="flex items-center gap-2">
-                  <RefreshCw size={16} className="text-[#00f2ff] animate-spin-slow group-hover:rotate-180 transition-transform duration-500" />
-                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-[#00f2ff]">INSTALL SYSTEM</span>
-                </div>
-                <span className="text-[7px] text-white/40 uppercase tracking-widest font-bold">READY FOR DEPLOYMENT</span>
+                <Play size={20} className="fill-current" />
+                START CORE
               </motion.button>
-            )}
 
-            <p className="absolute bottom-10 sm:bottom-20 text-white/20 text-[8px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.5em] font-black uppercase animate-pulse text-center">
-              TAP OR SPACE TO FLY
-            </p>
+              {deferredPrompt && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleInstallClick}
+                  className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 py-4 rounded-xl backdrop-blur-md transition-all hover:bg-white/10"
+                >
+                  <Zap size={14} className="text-[#f0ff00]" />
+                  <span className="text-[10px] font-black tracking-widest uppercase">Direct Access</span>
+                </motion.button>
+              )}
+            </div>
+
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+              className="absolute bottom-10 flex flex-col items-center gap-3 opacity-30"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-1 bg-white rounded-full animate-ping" />
+                <span className="text-[9px] font-black tracking-[0.5em] uppercase">Ready for Sync</span>
+              </div>
+              <p className="text-[8px] font-bold tracking-[0.3em] uppercase opacity-50">Tap screen to initiate</p>
+            </motion.div>
           </motion.div>
         )}
 

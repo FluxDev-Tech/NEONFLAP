@@ -81,41 +81,39 @@ export class GameManager {
     
     // Player (Bird) - Using a circle for smoother physics and less 'boxy' collisions
     this.player = Matter.Bodies.circle(100, height / 2, 22, {
-      friction: 0.0001,
-      frictionAir: 0.045, 
-      restitution: 0.3, 
+      friction: 0,
+      frictionAir: 0.05, 
+      restitution: 0.2, 
       density: 0.001,
-      label: 'player',
-      render: { fillStyle: '#00f2ff' }
+      label: 'player'
     });
     
     // Bounds (Floor/Ceiling)
-    const ground = Matter.Bodies.rectangle(width / 2, height + 50, width * 100, 100, { isStatic: true, label: 'ground' });
-    const ceiling = Matter.Bodies.rectangle(width / 2, -50, width * 100, 100, { isStatic: true, label: 'ground' });
+    const ground = Matter.Bodies.rectangle(width / 2, height + 60, width * 200, 120, { isStatic: true, label: 'ground' });
+    const ceiling = Matter.Bodies.rectangle(width / 2, -60, width * 200, 120, { isStatic: true, label: 'ground' });
     
     Matter.World.add(this.world, [this.player, ground, ceiling]);
 
     // Create flappy pipes with dynamic gaps for various screen heights
-    const gapSize = Math.min(340, Math.max(200, height * 0.45)); 
-    for (let i = 0; i < 200; i++) {
-        const x = 900 + i * 750; 
-        const minH = 80;
+    const gapSize = Math.min(320, Math.max(220, height * 0.42)); 
+    // Reduced count to 100 for performance, still plenty for a long run
+    for (let i = 0; i < 120; i++) {
+        const x = 800 + i * 800; 
+        const minH = 100;
         const maxH = height - gapSize - minH;
         const topPipeH = minH + Math.random() * maxH;
         
         // Top Pipe
-        const topPipe = Matter.Bodies.rectangle(x, topPipeH / 2, 80, topPipeH, { 
+        const topPipe = Matter.Bodies.rectangle(x, topPipeH / 2, 85, topPipeH, { 
             isStatic: true, 
-            label: 'obstacle',
-            render: { fillStyle: '#ff0055' }
+            label: 'obstacle'
         });
         
         // Bottom Pipe
         const bottomPipeH = height - topPipeH - gapSize;
-        const bottomPipe = Matter.Bodies.rectangle(x, height - bottomPipeH / 2, 80, bottomPipeH, { 
+        const bottomPipe = Matter.Bodies.rectangle(x, height - bottomPipeH / 2, 85, bottomPipeH, { 
             isStatic: true, 
-            label: 'obstacle',
-            render: { fillStyle: '#ff0055' }
+            label: 'obstacle'
         });
 
         this.obstacles.push(topPipe, bottomPipe);
@@ -130,9 +128,9 @@ export class GameManager {
         Matter.World.add(this.world, scoreTrigger);
 
         // Random collectible in some gaps
-        if (Math.random() > 0.6) { 
+        if (Math.random() > 0.75) { 
             const collY = topPipeH + gapSize/2;
-            const coll = Matter.Bodies.circle(x + 200, collY + (Math.random() - 0.5) * 100, 15, {
+            const coll = Matter.Bodies.circle(x + 250, collY + (Math.random() - 0.5) * 80, 15, {
                 isStatic: true,
                 isSensor: true,
                 label: 'collectible'
@@ -143,7 +141,7 @@ export class GameManager {
     }
 
     // Win trigger
-    const winTrigger = Matter.Bodies.rectangle(900 + 200 * 750 + 1000, height / 2, 100, height, {
+    const winTrigger = Matter.Bodies.rectangle(800 + 120 * 800 + 1000, height / 2, 120, height, {
         isStatic: true,
         isSensor: true,
         label: 'win'
@@ -155,19 +153,19 @@ export class GameManager {
   public setGameState(state: GameState) {
     this.gameState = state;
     this.onStateChange(state);
-    // Physics is manually stepped in the render loop for synchronization and performance
   }
 
   public flap() {
     if (this.gameState !== GameState.PLAYING || !this.player) return;
-    Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -8.5 });
+    // Snappier jump for user friendliness
+    Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -9 });
   }
 
   public step(delta: number) {
     if (this.gameState === GameState.PLAYING && this.player) {
-      // Fast, responsive speed
-      const baseSpeed = 4.2; 
-      const speedIncrease = Math.min(3.5, this.score / 600);
+      // Smoother speed progression
+      const baseSpeed = 4.0; 
+      const speedIncrease = Math.min(4, this.score / 800);
       const currentSpeed = baseSpeed + speedIncrease;
 
       // Consistent forward velocity

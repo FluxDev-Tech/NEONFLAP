@@ -8,6 +8,17 @@ interface GameCanvasProps {
   gameState: GameState;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  color: string;
+  size: number;
+}
+
 export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -15,6 +26,39 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
   const requestRef = useRef<number>(0);
   const lastScoreRef = useRef(0);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const particlesRef = useRef<Particle[]>([]);
+  const shakeRef = useRef(0);
+  const birdPulseRef = useRef(1);
+
+  const createBurst = (x: number, y: number, color: string, count: number = 10) => {
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        particlesRef.current.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 1,
+            maxLife: 0.5 + Math.random() * 0.5,
+            color,
+            size: Math.random() * 3 + 2
+        });
+    }
+  };
+
+  const createFlapParticles = (x: number, y: number) => {
+    for (let i = 0; i < 3; i++) {
+        particlesRef.current.push({
+            x, y,
+            vx: -3 - Math.random() * 2,
+            vy: (Math.random() - 0.5) * 4,
+            life: 1,
+            maxLife: 0.4,
+            color: '#00f2ff',
+            size: Math.random() * 2 + 1
+        });
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -71,81 +115,99 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     managerRef.current = manager;
     manager.init(dimensions.width, dimensions.height);
 
-    const ctx = canvasRef.current.getContext('2d', { alpha: false })!;
+    const ctx = canvasRef.current.getContext('2d', { 
+        alpha: false,
+        desynchronized: true // Performance hint
+    })!;
     
     let lastTime = performance.now();
     const render = (time: number) => {
+      // Basic check
       if (!ctx || !manager) return;
       
-      const delta = Math.min(time - lastTime, 33.3); // Cap at ~30FPS to prevent physics glitches if tab is backgrounded
+      const delta = Math.min(time - lastTime, 33.3); 
+      const dt = delta / 1000;
       lastTime = time;
 
-      // Manual step for perfect sync and performance
+      // Update state
+      shakeRef.current = Math.max(0, shakeRef.current - dt * 22);
+      birdPulseRef.current = Math.max(1, birdPulseRef.current - dt * 3.5);
+
+      // Physics step
       manager.step(delta);
 
-      const now = Date.now();
-      // Trigger shake on score increase removed for performance and smooth movement
-      if (manager.score > lastScoreRef.current) {
-          lastScoreRef.current = manager.score;
+      const now = performance.now();
+      
+      // Update Particles with simpler logic
+      const particles = particlesRef.current;
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= dt / p.maxLife;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      // Draw Sequence
+      ctx.save();
+      
+      // Screen Shake
+      if (shakeRef.current > 0.1) {
+          ctx.translate((Math.random() - 0.5) * shakeRef.current, (Math.random() - 0.5) * shakeRef.current);
       }
       
       // Deep Background sky
-      ctx.fillStyle = '#050510';
+      ctx.fillStyle = '#03030b';
       ctx.fillRect(0, 0, dimensions.width, dimensions.height);
 
       const playerX = manager.player?.position.x || 0;
+      const playerY = manager.player?.position.y || 0;
 
       // Parallax drawing Helper
       const drawParallaxLayer = (img: HTMLImageElement, parallax: number, alpha: number, yOffset: number, scale: number = 1) => {
-          const forestHeight = dimensions.height;
-          const forestWidth = forestHeight * (16/9);
-          const scaledWidth = forestWidth * scale;
-          const offset = -(playerX * parallax) % scaledWidth;
+          const h = dimensions.height;
+          const w = h * (16/9);
+          const scaledW = w * scale;
+          const offset = -(playerX * parallax) % scaledW;
           ctx.globalAlpha = alpha;
           
-          ctx.drawImage(img, offset, yOffset, scaledWidth, forestHeight * scale);
-          if (offset + scaledWidth < dimensions.width) {
-              ctx.drawImage(img, offset + scaledWidth, yOffset, scaledWidth, forestHeight * scale);
+          ctx.drawImage(img, offset, yOffset, scaledW, h * scale);
+          if (offset + scaledW < dimensions.width) {
+              ctx.drawImage(img, offset + scaledW, yOffset, scaledW, h * scale);
           }
           if (offset > 0) {
-              ctx.drawImage(img, offset - scaledWidth, yOffset, scaledWidth, forestHeight * scale);
+              ctx.drawImage(img, offset - scaledW, yOffset, scaledW, h * scale);
           }
       };
 
-      // Draw Parallax Forest (Optimized)
+      // Draw Parallax Forest
       if (forestImg.current) {
-        // Deep layer
-        drawParallaxLayer(forestImg.current, 0.05, 0.12, -50, 2);
-        // Mid layer
-        drawParallaxLayer(forestImg.current, 0.15, 0.3, 0);
+        drawParallaxLayer(forestImg.current, 0.05, 0.1, -50, 1.8);
+        drawParallaxLayer(forestImg.current, 0.12, 0.25, 0, 1);
         
-        // Polished Background Particles (Dust/Data bits)
-        ctx.globalAlpha = 0.2;
+        // Background Particles
+        ctx.globalAlpha = 0.15;
         ctx.fillStyle = '#00f2ff';
         const pXBase = playerX * 0.2;
-        for (let i = 0; i < 20; i++) {
-            const px = (i * 243 + pXBase) % dimensions.width;
-            const py = (i * 117) % dimensions.height;
-            ctx.fillRect(px, py, 2, 2);
+        for (let i = 0; i < 15; i++) {
+            ctx.fillRect((i * 317 + pXBase) % dimensions.width, (i * 153) % dimensions.height, 1.5, 1.5);
         }
 
-        // Fore layer
-        drawParallaxLayer(forestImg.current, 0.4, 0.06, -100, 1.3);
+        drawParallaxLayer(forestImg.current, 0.35, 0.05, -100, 1.2);
         ctx.globalAlpha = 1.0;
       }
 
-      // Camera logic: follow player
-      const offsetX = -playerX + 200;
+      const offsetX = -playerX + dimensions.width * 0.25;
       const offsetY = 0;
 
       ctx.save();
       ctx.translate(offsetX, offsetY);
 
-      // Draw grid (Optimized: Only draw visible lines)
-      ctx.strokeStyle = 'rgba(0, 242, 255, 0.02)'; 
+      // Draw grid
+      ctx.strokeStyle = 'rgba(0, 242, 255, 0.015)'; 
       ctx.lineWidth = 1;
-      const gridSize = 150;
-      const gridStartX = Math.floor((playerX - 200) / gridSize) * gridSize;
+      const gridSize = 160;
+      const gridStartX = Math.floor((playerX - dimensions.width * 0.25) / gridSize) * gridSize;
       const gridEndX = gridStartX + dimensions.width + gridSize;
       
       ctx.beginPath();
@@ -155,150 +217,139 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
       }
       ctx.stroke();
 
-      // Culling bounds for entities
-      const viewLeft = playerX - 300;
+      const viewLeft = playerX - 400;
       const viewRight = playerX + dimensions.width + 100;
 
-      // Draw Bodies
       const bodies = manager.world.bodies;
       bodies.forEach(body => {
-        // Strict Frustum Culling
         if (body.label !== 'player' && body.label !== 'ground') {
             if (body.position.x < viewLeft || body.position.x > viewRight) return;
         }
 
         if (body.label === 'collectible') {
-            ctx.beginPath();
             ctx.fillStyle = '#f0ff00';
-            ctx.arc(body.position.x, body.position.y, 12, 0, Math.PI * 2);
-            ctx.fill();
-            
             ctx.beginPath();
+            ctx.arc(body.position.x, body.position.y, 11, 0, Math.PI * 2);
+            ctx.fill();
             ctx.fillStyle = '#ffffff';
-            ctx.arc(body.position.x, body.position.y, 4, 0, Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(body.position.x, body.position.y, 3, 0, Math.PI * 2);
             ctx.fill();
         } else if (body.label === 'win') {
             const gradX = body.position.x;
-            const gradient = ctx.createLinearGradient(gradX - 100, 0, gradX + 100, 0);
+            const gradient = ctx.createLinearGradient(gradX - 120, 0, gradX + 120, 0);
             gradient.addColorStop(0, 'transparent');
-            gradient.addColorStop(0.5, 'rgba(0, 242, 255, 0.2)');
+            gradient.addColorStop(0.5, 'rgba(0, 242, 255, 0.15)');
             gradient.addColorStop(1, 'transparent');
             ctx.fillStyle = gradient;
             ctx.fillRect(gradX - 150, 0, 300, dimensions.height);
             
             ctx.strokeStyle = '#00f2ff';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(gradX, 0);
             ctx.lineTo(gradX, dimensions.height);
             ctx.stroke();
         } else if (body.label === 'player') {
-            const time = now * 0.005;
-            const swayY = Math.sin(time) * 3;
-            
             ctx.save();
-            ctx.translate(body.position.x, body.position.y + swayY);
-            
-            const velocityRot = Math.max(-0.4, Math.min(0.7, body.velocity.y * 0.05));
-            ctx.rotate(velocityRot);
+            ctx.translate(body.position.x, body.position.y);
+            ctx.rotate(Math.max(-0.4, Math.min(0.6, body.velocity.y * 0.04)));
 
-            // NEON BIRD CONSTRUCTION
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 15;
             ctx.shadowColor = '#00f2ff';
             
-            // 1. Core Body (Bright Yellow-Cyan Neon)
             ctx.fillStyle = '#f0ff00';
             ctx.beginPath();
-            // Aerodynamic flappy-style body with cleaner curves
             ctx.moveTo(-22, -8);
-            ctx.quadraticCurveTo(0, -22, 22, -6); // Top
-            ctx.lineTo(34, 0); // Beak tip
-            ctx.lineTo(22, 10); // Bottom beak
-            ctx.quadraticCurveTo(0, 22, -22, 10); // Bottom
+            ctx.quadraticCurveTo(0, -21, 23, -6);
+            ctx.lineTo(34, 0);
+            ctx.lineTo(23, 10);
+            ctx.quadraticCurveTo(0, 21, -22, 10);
             ctx.closePath();
             ctx.fill();
             
             ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1.5;
             ctx.stroke();
 
-            // 2. High-tech "Visor" Eye
             ctx.fillStyle = '#000000';
             ctx.beginPath();
-            ctx.ellipse(10, -5, 8, 5, 0.2, 0, Math.PI * 2);
+            ctx.ellipse(11, -5, 7, 4.5, 0.15, 0, Math.PI * 2);
             ctx.fill();
             
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(14, -6, 2, 0, Math.PI * 2);
+            ctx.arc(14, -6, 1.8, 0, Math.PI * 2);
             ctx.fill();
 
-            // 3. Iconic Beak Detail
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(22, 2);
-            ctx.lineTo(34, 0);
-            ctx.stroke();
-
-            // 4. Energy Core Thruster (Tail)
             ctx.fillStyle = '#ff0055';
             ctx.beginPath();
-            ctx.moveTo(-20, -5);
-            ctx.lineTo(-32, 0);
-            ctx.lineTo(-20, 5);
+            ctx.moveTo(-21, -5);
+            ctx.lineTo(-33, 0);
+            ctx.lineTo(-21, 5);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
             
-            // 5. Overall Glow Halo
             ctx.shadowBlur = 0;
-            const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 48);
-            glow.addColorStop(0, 'rgba(0, 242, 255, 0.25)');
+            const glowSize = 46 * birdPulseRef.current;
+            const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
+            glow.addColorStop(0, 'rgba(0, 242, 255, 0.22)');
             glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
             ctx.fillStyle = glow;
             ctx.beginPath();
-            ctx.arc(0, 0, 48, 0, Math.PI * 2);
+            ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.restore();
         } else if (body.label === 'obstacle') {
             const vertices = body.vertices;
-            const width = Math.abs(vertices[1].x - vertices[0].x);
-            const height = Math.abs(vertices[2].y - vertices[0].y);
+            const w = Math.abs(vertices[1].x - vertices[0].x);
+            const h = Math.abs(vertices[2].y - vertices[0].y);
             const cx = (vertices[0].x + vertices[1].x) / 2;
             const cy = (vertices[0].y + vertices[2].y) / 2;
-            const isTopPipe = cy < dimensions.height / 2;
+            const isTop = cy < dimensions.height / 2;
 
-            // Deep Modern Pillar
-            ctx.fillStyle = '#0a0005';
+            ctx.fillStyle = '#080006';
             ctx.beginPath();
-            ctx.roundRect(cx - width/2, cy - height/2, width, height, isTopPipe ? [0, 0, 16, 16] : [16, 16, 0, 0]);
+            ctx.roundRect(cx - w/2, cy - h/2, w, h, isTop ? [0, 0, 14, 14] : [14, 14, 0, 0]);
             ctx.fill();
             
             ctx.strokeStyle = '#ff0055';
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Energy Flux Cap
-            const capH = 22;
-            const capY = isTopPipe ? (cy + height/2 - capH) : (cy - height/2);
+            const capH = 20;
+            const capY = isTop ? (cy + h/2 - capH) : (cy - h/2);
             ctx.fillStyle = '#ff0055';
             ctx.beginPath();
-            ctx.roundRect(cx - width/2 - 8, capY, width + 16, capH, 8);
+            ctx.roundRect(cx - w/2 - 6, capY, w + 12, capH, 6);
             ctx.fill();
             
-            const pulse = (Math.sin(now * 0.01) + 1) * 0.2;
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.85 + pulse})`;
+            const pulse = (Math.sin(now * 0.008) + 1) * 0.15;
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + pulse})`;
             ctx.beginPath();
-            ctx.roundRect(cx - width/2 + 8, capY + 6, width - 16, capH - 12, 4);
+            ctx.roundRect(cx - w/2 + 7, capY + 5, w - 14, capH - 10, 3);
             ctx.fill();
-        } else if (body.label === 'ground') {
-            // Not explicitly drawn box for ground, but we could add a floor line
         }
       });
 
-      ctx.restore();
+      // Particles
+      if (particles.length > 0) {
+        ctx.save();
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      ctx.restore(); // Entities
+      ctx.restore(); // Global
       
       requestRef.current = requestAnimationFrame(render);
     };
@@ -316,14 +367,19 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
         const currentMState = managerRef.current.gameState;
         
         if (gameState === GameState.PLAYING) {
-            // Reset if we are starting a fresh game (from Menu, Game Over, or Win)
-            // But NOT if we are simply unpausing
             if (currentMState === GameState.START || currentMState === GameState.GAME_OVER || currentMState === GameState.WIN) {
                 managerRef.current.init(dimensions.width, dimensions.height);
                 lastScoreRef.current = 0;
+                particlesRef.current = [];
             }
             managerRef.current.setGameState(GameState.PLAYING);
         } else {
+            if (gameState === GameState.GAME_OVER && managerRef.current.player) {
+                shakeRef.current = 15;
+                const pos = managerRef.current.player.position;
+                createBurst(pos.x, pos.y, '#f0ff00', 20);
+                createBurst(pos.x, pos.y, '#ff0055', 10);
+            }
             managerRef.current.setGameState(gameState);
         }
     }
@@ -353,6 +409,11 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
           } else if (gameState === GameState.PLAYING) {
               managerRef.current.flap();
               soundManager.playFlip();
+              // Add juice
+              birdPulseRef.current = 1.3;
+              if (managerRef.current.player) {
+                  createFlapParticles(managerRef.current.player.position.x, managerRef.current.player.position.y);
+              }
           }
       }
   };
