@@ -71,47 +71,60 @@ export class GameManager {
   }
 
   public init(width: number, height: number) {
+    // Teardown existing world safely
     Matter.World.clear(this.world, false);
+    Matter.Engine.clear(this.engine);
+    
     this.obstacles = [];
     this.collectibles = [];
     this.score = 0;
     this.onScoreChange(this.score);
     this.gravityDirection = 1;
-    this.engine.gravity.y = 1.0; 
+    this.engine.gravity.y = 1.2; // Slightly stronger gravity for punchier gameplay
     
-    // Player (Bird) - Using a circle for smoother physics and less 'boxy' collisions
+    // Player (Bird) - Using a circle for smoother physics
     this.player = Matter.Bodies.circle(100, height / 2, 22, {
       friction: 0,
-      frictionAir: 0.05, 
-      restitution: 0.2, 
-      density: 0.001,
+      frictionAir: 0.04, 
+      restitution: 0.1, 
+      density: 0.0012,
       label: 'player'
     });
     
     // Bounds (Floor/Ceiling)
-    const ground = Matter.Bodies.rectangle(width / 2, height + 60, width * 200, 120, { isStatic: true, label: 'ground' });
-    const ceiling = Matter.Bodies.rectangle(width / 2, -60, width * 200, 120, { isStatic: true, label: 'ground' });
+    const worldWidth = width * 150; // Increased level length
+    const ground = Matter.Bodies.rectangle(worldWidth / 2, height + 60, worldWidth, 120, { 
+      isStatic: true, 
+      label: 'ground',
+      friction: 1
+    });
+    const ceiling = Matter.Bodies.rectangle(worldWidth / 2, -60, worldWidth, 120, { 
+      isStatic: true, 
+      label: 'ground',
+      friction: 1
+    });
     
     Matter.World.add(this.world, [this.player, ground, ceiling]);
 
-    // Create flappy pipes with dynamic gaps for various screen heights
-    const gapSize = Math.min(320, Math.max(220, height * 0.42)); 
-    // Reduced count to 100 for performance, still plenty for a long run
-    for (let i = 0; i < 120; i++) {
-        const x = 800 + i * 800; 
-        const minH = 100;
+    // Level Generation - Pipes
+    const gapSize = Math.min(300, Math.max(220, height * 0.38)); 
+    const pipeSpacing = 850;
+    const pipeCount = 150;
+
+    for (let i = 0; i < pipeCount; i++) {
+        const x = 900 + i * pipeSpacing; 
+        const minH = 120;
         const maxH = height - gapSize - minH;
         const topPipeH = minH + Math.random() * maxH;
         
-        // Top Pipe
-        const topPipe = Matter.Bodies.rectangle(x, topPipeH / 2, 85, topPipeH, { 
+        // Dynamic pipe sizing
+        const topPipe = Matter.Bodies.rectangle(x, topPipeH / 2, 90, topPipeH, { 
             isStatic: true, 
             label: 'obstacle'
         });
         
-        // Bottom Pipe
         const bottomPipeH = height - topPipeH - gapSize;
-        const bottomPipe = Matter.Bodies.rectangle(x, height - bottomPipeH / 2, 85, bottomPipeH, { 
+        const bottomPipe = Matter.Bodies.rectangle(x, height - bottomPipeH / 2, 90, bottomPipeH, { 
             isStatic: true, 
             label: 'obstacle'
         });
@@ -119,18 +132,19 @@ export class GameManager {
         this.obstacles.push(topPipe, bottomPipe);
         Matter.World.add(this.world, [topPipe, bottomPipe]);
 
-        // Score trigger (invisible sensor in the gap)
-        const scoreTrigger = Matter.Bodies.rectangle(x, topPipeH + gapSize/2, 20, gapSize, {
+        // Score trigger
+        const scoreTrigger = Matter.Bodies.rectangle(x, topPipeH + gapSize/2, 30, gapSize, {
             isStatic: true,
             isSensor: true,
             label: 'pipe_score'
         });
         Matter.World.add(this.world, scoreTrigger);
 
-        // Random collectible in some gaps
-        if (Math.random() > 0.75) { 
-            const collY = topPipeH + gapSize/2;
-            const coll = Matter.Bodies.circle(x + 250, collY + (Math.random() - 0.5) * 80, 15, {
+        // Collectibles
+        if (Math.random() > 0.7) { 
+            const collX = x + pipeSpacing / 2;
+            const collY = (height / 2) + (Math.random() - 0.5) * (height * 0.6);
+            const coll = Matter.Bodies.circle(collX, collY, 16, {
                 isStatic: true,
                 isSensor: true,
                 label: 'collectible'
@@ -140,8 +154,9 @@ export class GameManager {
         }
     }
 
-    // Win trigger
-    const winTrigger = Matter.Bodies.rectangle(800 + 120 * 800 + 1000, height / 2, 120, height, {
+    // Win trigger at the end of the long corridor
+    const winX = 900 + pipeCount * pipeSpacing + 1200;
+    const winTrigger = Matter.Bodies.rectangle(winX, height / 2, 150, height, {
         isStatic: true,
         isSensor: true,
         label: 'win'
@@ -149,35 +164,36 @@ export class GameManager {
     Matter.World.add(this.world, winTrigger);
   }
 
-
   public setGameState(state: GameState) {
+    if (this.gameState === state) return;
     this.gameState = state;
     this.onStateChange(state);
   }
 
   public flap() {
     if (this.gameState !== GameState.PLAYING || !this.player) return;
-    // Snappier jump for user friendliness
-    Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -9 });
+    // Stronger, snappier impulse
+    Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -9.5 });
   }
 
   public step(delta: number) {
     if (this.gameState === GameState.PLAYING && this.player) {
-      // Smoother speed progression
-      const baseSpeed = 4.0; 
-      const speedIncrease = Math.min(4, this.score / 800);
+      // Linear speed scaling based on performance/score
+      const baseSpeed = 4.5; 
+      const maxSpeedBonus = 5.5;
+      const speedIncrease = Math.min(maxSpeedBonus, this.score / 600);
       const currentSpeed = baseSpeed + speedIncrease;
 
-      // Consistent forward velocity
+      // Lock forward velocity
       Matter.Body.setVelocity(this.player, { x: currentSpeed, y: this.player.velocity.y });
       
-      // Horizontal bounds
-      if (this.player.position.y > 2000 || this.player.position.y < -1000) {
+      // Infinite fall/rise protection
+      if (this.player.position.y > 3000 || this.player.position.y < -1500) {
           this.setGameState(GameState.GAME_OVER);
           soundManager.playGameOver();
       }
 
-      // Step physics engine
+      // Update physical world
       Matter.Engine.update(this.engine, delta);
     }
   }

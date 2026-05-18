@@ -14,12 +14,15 @@ async function startServer() {
   // Static assets with caching for production
   if (process.env.NODE_ENV === "production") {
     // In production, we serve from the 'dist' folder relative to the project root
-    const distPath = path.join(process.cwd(), "dist");
+    const rootDir = process.cwd();
+    const distPath = path.resolve(rootDir, "dist");
+    const indexPath = path.join(distPath, "index.html");
     
-    console.log(`[Server] Production mode detected.`);
-    console.log(`[Server] Project root: ${process.cwd()}`);
-    console.log(`[Server] Serving static assets from: ${distPath}`);
-
+    console.log(`[Server] Production mode active.`);
+    console.log(`[Server] Current Working Directory: ${rootDir}`);
+    console.log(`[Server] Dist Path: ${distPath}`);
+    console.log(`[Server] Index Path: ${indexPath}`);
+    
     // Serve static files
     app.use(express.static(distPath, {
       maxAge: '1d',
@@ -28,10 +31,10 @@ async function startServer() {
     
     // SPA catch-all for any other routes
     app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"), (err) => {
+      res.sendFile(indexPath, (err) => {
         if (err) {
-          console.error(`[Server] Error sending index.html for path ${req.path}:`, err);
-          res.status(404).send("File not found or system still building");
+          console.error(`[Server] Error sending index.html:`, err);
+          res.status(404).send(`System error: Static assets missing. Please ensure build completed. (Looking in ${distPath})`);
         }
       });
     });

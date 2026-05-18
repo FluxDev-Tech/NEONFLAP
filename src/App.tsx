@@ -170,6 +170,11 @@ export default function App() {
   }, [highScore, isNewRecordReached]);
 
   const handleStateChange = useCallback((newState: GameState) => {
+    // Resume audio context on first interaction
+    if (newState === GameState.PLAYING) {
+      soundManager.playFlip(); // This will trigger .init() and resume context
+    }
+
     // Handling restarts from game-over or manual restart in pause
     if (newState === GameState.PLAYING && (gameState === GameState.GAME_OVER || gameState === GameState.WIN || gameState === GameState.START)) {
       if (gameState !== GameState.START) {
@@ -188,6 +193,25 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] text-white font-sans overflow-hidden select-none">
+      {/* Tutorial Overlay */}
+      <AnimatePresence>
+        {gameState === GameState.PLAYING && score === 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
+          >
+            <div className="flex flex-col items-center gap-4 bg-black/20 backdrop-blur-sm p-8 rounded-[40px] border border-white/5">
+              <div className="w-16 h-16 border-2 border-white/30 rounded-full flex items-center justify-center animate-bounce">
+                <Play className="text-white fill-current translate-x-0.5" size={24} />
+              </div>
+              <p className="text-[10px] font-black tracking-[0.5em] uppercase text-white/50">TAP TO JUMP</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Game View */}
       <div className="absolute inset-0">
         <GameCanvas 
