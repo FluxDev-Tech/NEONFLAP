@@ -110,11 +110,17 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     bImg.onload = () => {
         birdImg.current = bImg;
     };
+    bImg.onerror = (e) => {
+        console.error('Bird image failed to load', e);
+    };
 
     const fImg = new Image();
     fImg.src = '/forest-bg.png';
     fImg.onload = () => {
         forestImg.current = fImg;
+    };
+    fImg.onerror = (e) => {
+        console.error('Forest image failed to load', e);
     };
   }, []);
 
@@ -219,20 +225,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
       ctx.save();
       ctx.translate(offsetX, offsetY);
 
-      // Draw grid
-      ctx.strokeStyle = 'rgba(0, 242, 255, 0.015)'; 
-      ctx.lineWidth = 1;
-      const gridSize = 160;
-      const gridStartX = Math.floor((playerX - dimensions.width * 0.25) / gridSize) * gridSize;
-      const gridEndX = gridStartX + dimensions.width + gridSize;
-      
-      ctx.beginPath();
-      for (let x = gridStartX; x < gridEndX; x += gridSize) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, dimensions.height);
-      }
-      ctx.stroke();
-
+      // No grid - simplified for cleaner look
       const viewLeft = playerX - 400;
       const viewRight = playerX + dimensions.width + 100;
 
@@ -318,10 +311,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
           const capY = isTop ? (cy + h/2 - capH) : (cy - h/2);
           ctx.fillStyle = '#ff0055';
           ctx.fillRect(cx - w/2 - 6, capY, w + 12, capH);
-          
-          // Inner detail
-          ctx.fillStyle = `rgba(255, 255, 255, ${innerAlpha})`;
-          ctx.fillRect(cx - w/2 + 7, capY + 5, w - 14, capH - 10);
         }
       }
 
@@ -336,8 +325,9 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
         const skin = SKIN_PROTOCOLS.find(s => s.id === selectedSkinId) || SKIN_PROTOCOLS[0];
 
         if (birdImg.current) {
-            const w = 52;
-            const h = 40;
+            const pulse = vFXEnabled ? birdPulseRef.current : 1;
+            const w = 52 * pulse;
+            const h = 40 * pulse;
             ctx.drawImage(birdImg.current, -w/2, -h/2, w, h);
         } else {
             ctx.fillStyle = skin.colors.primary;
@@ -369,16 +359,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             ctx.stroke();
         }
         
-        ctx.shadowBlur = 0;
-        const glowSize = 46 * (vFXEnabled ? birdPulseRef.current : 1);
-        const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
-        glow.addColorStop(0, `${skin.colors.glow}33`);
-        glow.addColorStop(1, `${skin.colors.glow}00`);
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
-        ctx.fill();
-
         ctx.restore();
       }
 

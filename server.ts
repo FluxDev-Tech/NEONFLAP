@@ -11,7 +11,7 @@ async function startServer() {
   });
 
   // Static assets and SPA handling
-  const distPath = path.resolve(process.cwd(), "dist");
+  const distPath = path.resolve(__dirname, "dist");
   const indexPath = path.join(distPath, "index.html");
 
   if (process.env.NODE_ENV === "production" || process.env.RENDER) {
@@ -27,8 +27,7 @@ async function startServer() {
     app.get("*", (req, res) => {
       res.sendFile(indexPath, (err) => {
         if (err) {
-          console.error(`[Server] Error: Failed to send index.html. Path: ${indexPath}`);
-          res.status(500).send("Game resources missing. Please ensure the build completed successfully.");
+          res.status(500).send("Game Load Error: Please check connection.");
         }
       });
     });

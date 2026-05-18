@@ -8,16 +8,16 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameState } from './game/GameManager';
 import GameCanvas from './components/GameCanvas';
 import { soundManager } from './game/SoundManager';
-import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home, RefreshCw, Settings as SettingsIcon, Shield } from 'lucide-react';
-import SettingsOverlay from './components/SettingsOverlay';
+import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home, RefreshCw, Settings as SettingsIcon, Shield, Volume2, VolumeX, Eye, EyeOff } from 'lucide-react';
 import SkinsOverlay from './components/SkinsOverlay';
 import { SKIN_PROTOCOLS } from './game/SkinPresets';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
   const [score, setScore] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
   const [showSkins, setShowSkins] = useState(false);
+
+  const [showSettingsInMenu, setShowSettingsInMenu] = useState(false);
 
   const [totalRuns, setTotalRuns] = useState<number>(() => {
     try {
@@ -244,14 +244,6 @@ export default function App() {
       </div>
 
       <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-40 flex gap-3">
-        {(gameState === GameState.PLAYING || gameState === GameState.START || gameState === GameState.PAUSED) && (
-          <button 
-            onClick={() => setShowSettings(true)}
-            className="pointer-events-auto bg-black/40 hover:bg-white/10 p-3 sm:p-4 rounded-full border border-white/10 transition-all backdrop-blur-md group active:scale-90"
-          >
-            <SettingsIcon size={18} className="text-white group-hover:rotate-90 sm:w-5 sm:h-5 transition-transform" />
-          </button>
-        )}
         {gameState === GameState.PLAYING && (
           <button 
             onClick={() => handleStateChange(GameState.PAUSED)}
@@ -264,14 +256,6 @@ export default function App() {
 
       {/* UI Overlays */}
       <AnimatePresence mode="wait">
-        {showSettings && (
-          <SettingsOverlay 
-            key="settings"
-            settings={settings}
-            onUpdate={setSettings}
-            onClose={() => setShowSettings(false)}
-          />
-        )}
         {showSkins && (
           <SkinsOverlay
             key="skins"
@@ -285,107 +269,185 @@ export default function App() {
             stats={{ best: highScore, total: totalRuns }}
           />
         )}
-        {gameState === GameState.START && (
+      {gameState === GameState.START && (
           <motion.div 
             key="start"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#03030b] p-4 sm:p-6"
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#03030b] p-4 sm:p-6 overflow-y-auto"
           >
             {/* Background Atmosphere */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00f2ff]/5 rounded-full blur-[120px]" />
               <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#00f2ff]/5 to-transparent" />
             </div>
 
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center relative w-full max-w-[320px] sm:max-w-xl mb-12"
-            >
-              {/* Boxed Title Container */}
-              <div className="relative w-full p-8 sm:p-16 border border-[#00f2ff]/30 rounded-[40px] bg-black/40 backdrop-blur-xl overflow-hidden group shadow-[0_0_50px_rgba(0,242,255,0.1)]">
-                {/* Tech Accents */}
-                <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[#00f2ff] rounded-tl-[40px]" />
-                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[#ff0055] rounded-br-[40px]" />
-                <div className="absolute top-6 left-6 text-[#00f2ff]/20 font-mono text-[8px] tracking-[0.3em]">VERSION_2.6.0</div>
-                
-                <div className="relative z-10 flex flex-col items-center">
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="mb-2 bg-[#ff0055] text-white text-[8px] sm:text-[10px] font-black px-4 py-1 rounded-full tracking-widest shadow-[0_0_20px_rgba(255,0,85,0.4)] border border-white/10 uppercase"
-                  >
-                    Legacy Edition
-                  </motion.div>
+            <div className="relative z-10 flex flex-col items-center w-full min-h-full py-12">
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col items-center relative w-full max-w-[320px] sm:max-w-xl mb-12"
+              >
+                {/* Boxed Title Container */}
+                <div className="relative w-full p-8 sm:p-16 border border-[#00f2ff]/30 rounded-[40px] bg-black/40 backdrop-blur-xl overflow-hidden group shadow-[0_0_50px_rgba(0,242,255,0.1)]">
+                  {/* Tech Accents */}
+                  <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[#00f2ff] rounded-tl-[40px]" />
+                  <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[#ff0055] rounded-br-[40px]" />
+                  <div className="absolute top-6 left-6 text-[#00f2ff]/20 font-mono text-[8px] tracking-[0.3em]">VERSION_2.6.0</div>
                   
-                  <h1 className="text-5xl sm:text-8xl lg:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_35px_rgba(0,242,255,0.3)] leading-none text-center">
-                    NEON<br className="sm:hidden" />FLAP
-                  </h1>
-                  
-                  <div className="mt-8 flex items-center gap-3">
-                    <div className="h-px w-8 bg-white/10" />
-                    <p className="text-white/40 text-[9px] sm:text-[11px] tracking-[0.5em] font-black uppercase whitespace-nowrap">
-                      Void Protocol Active
-                    </p>
-                    <div className="h-px w-8 bg-white/10" />
+                  <div className="relative z-10 flex flex-col items-center">
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className="mb-2 bg-[#ff0055] text-white text-[8px] sm:text-[10px] font-black px-4 py-1 rounded-full tracking-widest shadow-[0_0_20px_rgba(255,0,85,0.4)] border border-white/10 uppercase"
+                    >
+                      Legacy Edition
+                    </motion.div>
+                    
+                    <h1 className="text-5xl sm:text-8xl lg:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_35px_rgba(0,242,255,0.3)] leading-none text-center">
+                      NEON<br className="sm:hidden" />FLAP
+                    </h1>
+                    
+                    <div className="mt-8 flex items-center gap-3">
+                      <div className="h-px w-8 bg-white/10" />
+                      <p className="text-white/40 text-[9px] sm:text-[11px] tracking-[0.5em] font-black uppercase whitespace-nowrap">
+                        Void Protocol Active
+                      </p>
+                      <div className="h-px w-8 bg-white/10" />
+                    </div>
                   </div>
+
+                  {/* Animated Inner Shine */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </div>
-
-                {/* Animated Inner Shine */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              </div>
-            </motion.div>
-            
-            <div className="flex flex-col items-center w-full max-w-[280px] sm:max-w-xs space-y-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleStateChange(GameState.PLAYING)}
-                className="pointer-events-auto flex items-center justify-center gap-4 bg-white text-black w-full py-5 sm:py-7 rounded-2xl font-black text-lg sm:text-xl tracking-tight shadow-[0_0_50px_rgba(255,255,255,0.3)] transition-all hover:bg-neutral-100"
-              >
-                <Play size={20} className="fill-current" />
-                START CORE
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowSkins(true)}
-                className="pointer-events-auto flex items-center justify-center gap-4 bg-white/10 border border-white/20 text-white w-full py-4 rounded-xl font-black text-sm tracking-[0.2em] backdrop-blur-md transition-all hover:bg-white/20"
-              >
-                <Shield size={18} className="text-[#ff0055]" />
-                PROTOCOLS HANGAR
-              </motion.button>
-
-              {deferredPrompt && (
+              </motion.div>
+              
+              <div className="flex flex-col items-center w-full max-w-[280px] sm:max-w-xs space-y-4">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={handleInstallClick}
-                  className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 py-4 rounded-xl backdrop-blur-md transition-all hover:bg-white/10"
+                  onClick={() => handleStateChange(GameState.PLAYING)}
+                  className="pointer-events-auto flex items-center justify-center gap-4 bg-white text-black w-full py-5 sm:py-7 rounded-2xl font-black text-lg sm:text-xl tracking-tight shadow-[0_0_50px_rgba(255,255,255,0.3)] transition-all hover:bg-neutral-100"
                 >
-                  <Zap size={14} className="text-[#f0ff00]" />
-                  <span className="text-[10px] font-black tracking-widest uppercase">Direct Access</span>
+                  <Play size={20} className="fill-current" />
+                  START CORE
                 </motion.button>
-              )}
-            </div>
 
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="absolute bottom-10 flex flex-col items-center gap-3 opacity-30"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-1 h-1 bg-white rounded-full animate-ping" />
-                <span className="text-[9px] font-black tracking-[0.5em] uppercase">Ready for Sync</span>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowSkins(true)}
+                  className="pointer-events-auto flex items-center justify-center gap-4 bg-white/10 border border-white/20 text-white w-full py-4 rounded-xl font-black text-sm tracking-[0.2em] backdrop-blur-md transition-all hover:bg-white/20"
+                >
+                  <Shield size={18} className="text-[#ff0055]" />
+                  PROTOCOLS HANGAR
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowSettingsInMenu(!showSettingsInMenu)}
+                  className={`pointer-events-auto flex items-center justify-center gap-4 border w-full py-4 rounded-xl font-black text-sm tracking-[0.2em] backdrop-blur-md transition-all ${showSettingsInMenu ? 'bg-[#00f2ff]/20 border-[#00f2ff]/50 text-[#00f2ff]' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+                >
+                  <SettingsIcon size={18} className={showSettingsInMenu ? 'animate-spin-slow' : ''} />
+                  {showSettingsInMenu ? 'CLOSE SETTINGS' : 'SYSTEM CONFIG'}
+                </motion.button>
+
+                <AnimatePresence>
+                  {showSettingsInMenu && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="w-full overflow-hidden"
+                    >
+                      <div className="pt-4 space-y-6">
+                        <div className="p-5 bg-white/5 rounded-2xl border border-white/10 space-y-4">
+                          {/* Sound Toggle */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {settings.soundEnabled ? <Volume2 size={16} className="text-[#00f2ff]" /> : <VolumeX size={16} className="text-white/20" />}
+                              <span className="text-[10px] font-black tracking-widest uppercase">Audio</span>
+                            </div>
+                            <button
+                              onClick={() => setSettings(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }))}
+                              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                                settings.soundEnabled ? 'bg-[#00f2ff] text-black shadow-[0_0_15px_rgba(0,242,255,0.4)]' : 'bg-white/10 text-white/40'
+                              }`}
+                            >
+                              {settings.soundEnabled ? 'On' : 'Off'}
+                            </button>
+                          </div>
+
+                          {/* Volume Slider */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-[9px] font-bold text-white/30 tracking-widest uppercase">
+                              <span>Output Volume</span>
+                              <span>{Math.round(settings.volume * 100)}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.01"
+                              value={settings.volume}
+                              onChange={(e) => setSettings(prev => ({ ...prev, volume: parseFloat(e.target.value) }))}
+                              className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#00f2ff]"
+                            />
+                          </div>
+
+                          <div className="h-px bg-white/5" />
+
+                          {/* VFX Toggle */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {settings.vFXEnabled ? <Eye size={16} className="text-[#f0ff00]" /> : <EyeOff size={16} className="text-white/20" />}
+                              <span className="text-[10px] font-black tracking-widest uppercase">Visual FX</span>
+                            </div>
+                            <button
+                              onClick={() => setSettings(prev => ({ ...prev, vFXEnabled: !prev.vFXEnabled }))}
+                              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                                settings.vFXEnabled ? 'bg-[#f0ff00] text-black shadow-[0_0_15px_rgba(240,255,0,0.4)]' : 'bg-white/10 text-white/40'
+                              }`}
+                            >
+                              {settings.vFXEnabled ? 'Max' : 'Min'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {deferredPrompt && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleInstallClick}
+                    className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 py-4 rounded-xl backdrop-blur-md transition-all hover:bg-white/10"
+                  >
+                    <Zap size={14} className="text-[#f0ff00]" />
+                    <span className="text-[10px] font-black tracking-widest uppercase">Direct Access</span>
+                  </motion.button>
+                )}
               </div>
-              <p className="text-[8px] font-bold tracking-[0.3em] uppercase opacity-50">Tap screen to initiate</p>
-            </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="mt-12 flex flex-col items-center gap-3 opacity-30"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-1 bg-white rounded-full animate-ping" />
+                  <span className="text-[9px] font-black tracking-[0.5em] uppercase">Ready for Sync</span>
+                </div>
+                <p className="text-[8px] font-bold tracking-[0.3em] uppercase opacity-50">Tap screen to initiate</p>
+              </motion.div>
+            </div>
           </motion.div>
         )}
 
@@ -395,25 +457,25 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-xl p-8"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-xl p-8 overflow-y-auto"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="flex flex-col items-center w-full max-w-sm"
+              className="flex flex-col items-center w-full max-w-sm py-12"
             >
               <h2 className="text-4xl sm:text-7xl font-black italic tracking-tighter text-white mb-2 leading-none text-center">SYSTEM PAUSED</h2>
               
               <div className="w-full h-px bg-white/10 my-6 sm:my-10" />
 
-              <div className="flex flex-col items-center mb-8 sm:mb-16">
-                <span className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] text-white/30 mb-2">LIVE DATA SYNC</span>
+              <div className="flex flex-col items-center mb-8 sm:mb-16 text-center">
+                <span className="text-[10px] uppercase font-black tracking-[0.4em] text-white/30 mb-2">LIVE DATA SYNC</span>
                 <span className="text-3xl sm:text-6xl font-mono font-bold text-[#00f2ff] tabular-nums tracking-widest leading-none drop-shadow-[0_0_30px_rgba(0,242,255,0.4)]">
                   {score.toString().padStart(6, '0')}
                 </span>
               </div>
 
-              <div className="flex flex-col gap-3 sm:gap-4 w-full">
+              <div className="flex flex-col gap-3 sm:gap-4 w-full mb-8">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -437,10 +499,51 @@ export default function App() {
                   RESTART CORE
                 </motion.button>
               </div>
+
+              <div className="w-full p-5 bg-white/5 rounded-2xl border border-white/10 space-y-4 mb-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {settings.soundEnabled ? <Volume2 size={16} className="text-[#00f2ff]" /> : <VolumeX size={16} className="text-white/20" />}
+                      <span className="text-[10px] font-black tracking-widest uppercase">Audio</span>
+                    </div>
+                    <button
+                      onClick={() => setSettings(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }))}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                        settings.soundEnabled ? 'bg-[#00f2ff] text-black shadow-[0_0_15px_rgba(0,242,255,0.4)]' : 'bg-white/10 text-white/40'
+                      }`}
+                    >
+                      {settings.soundEnabled ? 'On' : 'Off'}
+                    </button>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={settings.volume}
+                    onChange={(e) => setSettings(prev => ({ ...prev, volume: parseFloat(e.target.value) }))}
+                    className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#00f2ff]"
+                  />
+                  <div className="h-px bg-white/5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {settings.vFXEnabled ? <Eye size={16} className="text-[#f0ff00]" /> : <EyeOff size={16} className="text-white/20" />}
+                      <span className="text-[10px] font-black tracking-widest uppercase">Visual FX</span>
+                    </div>
+                    <button
+                      onClick={() => setSettings(prev => ({ ...prev, vFXEnabled: !prev.vFXEnabled }))}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                        settings.vFXEnabled ? 'bg-[#f0ff00] text-black shadow-[0_0_15px_rgba(240,255,0,0.4)]' : 'bg-white/10 text-white/40'
+                      }`}
+                    >
+                      {settings.vFXEnabled ? 'Max' : 'Min'}
+                    </button>
+                  </div>
+              </div>
               
               <button 
                 onClick={() => handleStateChange(GameState.START)}
-                className="mt-12 flex items-center gap-3 text-white/30 text-[10px] font-black uppercase tracking-[0.4em] hover:text-white transition-colors"
+                className="flex items-center gap-3 text-white/30 text-[10px] font-black uppercase tracking-[0.4em] hover:text-white transition-colors"
               >
                 <Home size={16} />
                 EXIT TO MENU
