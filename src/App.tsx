@@ -18,6 +18,7 @@ export default function App() {
   const [showSkins, setShowSkins] = useState(false);
 
   const [showSettingsInMenu, setShowSettingsInMenu] = useState(false);
+  const [showInstallPopup, setShowInstallPopup] = useState(false);
 
   const [totalRuns, setTotalRuns] = useState<number>(() => {
     try {
@@ -73,6 +74,13 @@ export default function App() {
   const displayedBest = highScore;
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    if (deferredPrompt && gameState === GameState.START) {
+      const timer = setTimeout(() => setShowInstallPopup(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [deferredPrompt, gameState]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -193,6 +201,46 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] text-white font-sans overflow-hidden select-none">
+      <AnimatePresence>
+        {showInstallPopup && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-6 right-6 z-[60] sm:left-auto sm:right-6 sm:w-80"
+          >
+            <div className="bg-white p-6 rounded-3xl shadow-2xl flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center shrink-0">
+                  <Play className="text-white fill-current translate-x-0.5" size={20} />
+                </div>
+                <div>
+                  <h3 className="text-black font-black text-sm tracking-tight">INSTALL PROTOCOL</h3>
+                  <p className="text-black/50 text-[10px] font-bold uppercase tracking-widest">RUNS BEST ON HOMESCREEN</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowInstallPopup(false)}
+                  className="flex-1 py-3 text-black/40 text-[10px] font-black uppercase tracking-widest hover:text-black transition-colors"
+                >
+                  DISMISS
+                </button>
+                <button 
+                  onClick={() => {
+                    handleInstallClick();
+                    setShowInstallPopup(false);
+                  }}
+                  className="flex-[2] py-3 bg-[#00f2ff] text-black rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-cyan-500/20"
+                >
+                  INSTALL NOW
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Tutorial Overlay */}
       <AnimatePresence>
         {gameState === GameState.PLAYING && score === 0 && (
@@ -307,8 +355,8 @@ export default function App() {
                       Legacy Edition
                     </motion.div>
                     
-                    <h1 className="text-5xl sm:text-8xl lg:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_35px_rgba(0,242,255,0.3)] leading-none text-center">
-                      NEON<br className="sm:hidden" />FLAP
+                    <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_35px_rgba(0,242,255,0.3)] leading-[0.8] mb-4 text-center">
+                      NEON<br />FLAP
                     </h1>
                     
                     <div className="mt-8 flex items-center gap-3">

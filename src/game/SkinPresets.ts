@@ -14,11 +14,11 @@ export interface SkinProtocol {
 export const SKIN_PROTOCOLS: SkinProtocol[] = [
   {
     id: 'DEFAULT',
-    name: 'PROTO_ALPHA',
+    name: 'CORE_ZERO',
     description: 'Standard issue neon scout unit.',
     requirement: 'INTEGRATED',
     colors: {
-      primary: '#f0ff00',
+      primary: '#00f2ff',
       secondary: '#ffffff',
       glow: '#00f2ff',
       beak: '#ff0055',
@@ -26,7 +26,7 @@ export const SKIN_PROTOCOLS: SkinProtocol[] = [
   },
   {
     id: 'PHASE',
-    name: 'PROTO_PHASE',
+    name: 'PHANTOM_X',
     description: 'High-visibility spectrum unit.',
     requirement: 'SCORE 20+',
     colors: {
@@ -38,7 +38,7 @@ export const SKIN_PROTOCOLS: SkinProtocol[] = [
   },
   {
     id: 'CRIMSON',
-    name: 'PROTO_CRIMSON',
+    name: 'CRIMSON_WING',
     description: 'Aggressive data interceptor.',
     requirement: 'SCORE 50+',
     colors: {
@@ -49,22 +49,10 @@ export const SKIN_PROTOCOLS: SkinProtocol[] = [
     }
   },
   {
-    id: 'SILVER',
-    name: 'PROTO_SILVER',
-    description: 'Elite chrome-plated chassis.',
-    requirement: 'SCORE 100+',
-    colors: {
-      primary: '#e2e8f0',
-      secondary: '#ffffff',
-      glow: '#ffffff',
-      beak: '#000000',
-    }
-  },
-  {
     id: 'VOID',
-    name: 'PROTO_VOID',
-    description: 'Deep space stealth frame.',
-    requirement: '25 MISSIONS',
+    name: 'VOID_WALKER',
+    description: 'Experimental dark-matter chassis.',
+    requirement: 'SCORE 100+',
     colors: {
       primary: '#7c3aed',
       secondary: '#ffffff',

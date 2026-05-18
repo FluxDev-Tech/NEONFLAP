@@ -328,7 +328,20 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
             const pulse = vFXEnabled ? birdPulseRef.current : 1;
             const w = 52 * pulse;
             const h = 40 * pulse;
+            
+            // Apply skin filtering
+            if (selectedSkinId === 'PHASE') {
+                ctx.filter = 'hue-rotate(180deg) brightness(1.1) saturate(1.5)';
+            } else if (selectedSkinId === 'CRIMSON') {
+                ctx.filter = 'hue-rotate(300deg) brightness(1.2) contrast(1.1)';
+            } else if (selectedSkinId === 'VOID') {
+                ctx.filter = 'grayscale(1) brightness(0.4) contrast(1.5) drop-shadow(0 0 10px #7c3aed)';
+            } else {
+                ctx.filter = 'none';
+            }
+            
             ctx.drawImage(birdImg.current, -w/2, -h/2, w, h);
+            ctx.filter = 'none'; // Reset
         } else {
             ctx.fillStyle = skin.colors.primary;
             ctx.beginPath();
