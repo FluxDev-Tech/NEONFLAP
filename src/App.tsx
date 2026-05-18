@@ -329,7 +329,7 @@ export default function App() {
                 className="flex flex-col items-center relative w-full mb-12"
               >
                 {/* Boxed Title Container */}
-                <div className="relative w-full p-8 sm:p-16 border border-[#00f2ff]/30 rounded-[3rem] bg-black/40 backdrop-blur-xl overflow-hidden group shadow-[0_0_80px_rgba(0,242,255,0.1)] mb-12">
+                <div className="relative w-full p-6 sm:p-16 border border-[#00f2ff]/30 rounded-[3rem] bg-black/40 backdrop-blur-xl overflow-hidden group shadow-[0_0_80px_rgba(0,242,255,0.1)] mb-12">
                   {/* Tech Accents */}
                   <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#00f2ff] rounded-tl-[3rem]" />
                   <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#ff0055] rounded-br-[3rem]" />
@@ -356,7 +356,7 @@ export default function App() {
                       Integrated Protocol
                     </motion.div>
                     
-                    <h1 className="text-6xl sm:text-9xl font-[1000] italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_50px_rgba(0,242,255,0.4)] leading-[0.75] mb-10 text-center">
+                    <h1 className="text-5xl sm:text-9xl font-[1000] italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_50px_rgba(0,242,255,0.4)] leading-[0.75] mb-10 text-center">
                       NEON<br />FLAP
                     </h1>
                     
@@ -507,15 +507,15 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-3xl p-8 overflow-y-auto"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-3xl p-4 sm:p-8"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="flex flex-col items-center w-full max-w-sm py-12"
+              className="flex flex-col items-center w-full max-w-sm sm:max-w-md py-12"
             >
-              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/20">
-                  <Pause size={28} className="text-white fill-white" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 rounded-[2rem] flex items-center justify-center mb-6 border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.05)]">
+                  <Pause size={32} className="text-white fill-white" />
               </div>
 
               <h2 className="text-5xl sm:text-7xl font-[1000] italic tracking-tighter text-white mb-2 leading-none text-center">SYSTEM<br />HALTED</h2>
@@ -523,20 +523,20 @@ export default function App() {
               <div className="w-full h-px bg-white/10 my-8 sm:my-10" />
 
               <div className="flex flex-col items-center mb-10 sm:mb-14 text-center">
-                <span className="text-[10px] uppercase font-black tracking-[0.4em] text-white/30 mb-3">SYNC STATUS</span>
-                <span className="text-4xl sm:text-7xl font-mono font-[900] text-[#00f2ff] tabular-nums tracking-widest leading-none drop-shadow-[0_0_30px_rgba(0,242,255,0.4)]">
+                <span className="text-[10px] sm:text-[12px] uppercase font-black tracking-[0.5em] text-white/30 mb-4">SYNC STATUS</span>
+                <span className="text-5xl sm:text-8xl font-mono font-[900] text-[#00f2ff] tabular-nums tracking-tighter leading-none drop-shadow-[0_0_30px_rgba(0,242,255,0.4)]">
                   {score.toString().padStart(6, '0')}
                 </span>
               </div>
 
-              <div className="flex flex-col gap-4 w-full mb-10">
+              <div className="flex flex-col gap-4 w-full mb-12">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleStateChange(GameState.PLAYING)}
-                  className="flex items-center justify-center gap-4 bg-[#00f2ff] text-black w-full py-5 sm:py-6 rounded-2xl sm:rounded-3xl font-[1000] tracking-tight text-lg sm:text-xl shadow-[0_0_30px_rgba(0,242,255,0.3)] transition-all"
+                  className="flex items-center justify-center gap-4 bg-[#00f2ff] text-black w-full py-6 sm:py-7 rounded-[1.5rem] font-[1000] tracking-tight text-xl shadow-[0_20px_50px_rgba(0,242,255,0.3)] transition-all"
                 >
-                  <PlayCircle size={24} fill="currentColor" />
+                  <PlayCircle size={28} fill="currentColor" />
                   RECONNECT
                 </motion.button>
                 
@@ -547,22 +547,22 @@ export default function App() {
                     handleStateChange(GameState.START);
                     setTimeout(() => handleStateChange(GameState.PLAYING), 100);
                   }}
-                  className="flex items-center justify-center gap-4 bg-white/5 border border-white/10 text-white w-full py-4 sm:py-5 rounded-2xl sm:rounded-3xl font-black tracking-widest text-xs backdrop-blur-md transition-all hover:bg-white/10"
+                  className="flex items-center justify-center gap-4 bg-white/5 border border-white/10 text-white w-full py-5 rounded-2xl font-black tracking-[0.4em] text-[10px] uppercase backdrop-blur-md transition-all hover:bg-white/10"
                 >
                   <RefreshCw size={18} />
                   HARD REBOOT
                 </motion.button>
               </div>
 
-              <div className="w-full p-6 bg-white/[0.03] rounded-3xl border border-white/10 space-y-6 mb-10">
+              <div className="w-full p-6 sm:p-8 bg-white/[0.03] rounded-[2.5rem] border border-white/10 space-y-6 mb-12">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 text-white/40">
-                      {settings.soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                      <span className="text-[9px] font-[900] tracking-best uppercase">Acoustics</span>
+                      {settings.soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                      <span className="text-[10px] font-[900] tracking-best uppercase">Acoustics</span>
                     </div>
                     <button
                       onClick={() => setSettings(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }))}
-                      className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-best transition-all ${
+                      className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-best transition-all ${
                         settings.soundEnabled ? 'bg-[#00f2ff] text-black' : 'bg-white/10 text-white/40'
                       }`}
                     >
@@ -570,7 +570,11 @@ export default function App() {
                     </button>
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-[8px] font-black text-white/20 tracking-best uppercase">
+                        <span>Intensity</span>
+                        <span>{Math.round(settings.volume * 100)}%</span>
+                    </div>
                     <input
                       type="range"
                       min="0"
@@ -578,14 +582,14 @@ export default function App() {
                       step="0.01"
                       value={settings.volume}
                       onChange={(e) => setSettings(prev => ({ ...prev, volume: parseFloat(e.target.value) }))}
-                      className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#00f2ff]"
+                      className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#00f2ff]"
                     />
                   </div>
               </div>
               
               <button 
                 onClick={() => handleStateChange(GameState.START)}
-                className="flex items-center gap-3 text-white/20 text-[10px] font-black uppercase tracking-[0.5em] hover:text-white transition-colors"
+                className="flex items-center gap-3 text-white/20 text-[11px] font-black uppercase tracking-[0.5em] hover:text-white transition-colors"
               >
                 <Home size={16} />
                 COMMAND CENTER
@@ -671,31 +675,59 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/80 backdrop-blur-2xl"
+            className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/70 backdrop-blur-3xl p-4"
           >
             <motion.div 
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              className="flex flex-col items-center px-6"
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              className="flex flex-col items-center w-full max-w-sm sm:max-w-md"
             >
-              <Trophy size={80} className="text-[#00f2ff] drop-shadow-[0_0_30px_rgba(0,242,255,0.6)] mb-8" />
-              <h2 className="text-7xl font-black italic tracking-tighter text-[#00f2ff] mb-2 drop-shadow-[0_0_40px_rgba(0,242,255,0.5)]">FLUX STABLE</h2>
-              <p className="text-white/40 font-mono mb-16 tracking-[0.4em] uppercase text-center text-xs">Mission synchronization successful</p>
-              
-              <div className="flex flex-col gap-4 w-full max-w-[280px]">
-                <button 
+              <div className="w-20 h-20 bg-[#00f2ff]/10 border border-[#00f2ff]/30 rounded-[2rem] flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(0,242,255,0.2)]">
+                  <Trophy size={40} className="text-[#00f2ff]" />
+              </div>
+
+              <h2 className="text-5xl sm:text-8xl font-[1000] italic tracking-tighter text-[#00f2ff] mb-2 leading-tight drop-shadow-[0_0_40px_rgba(0,242,255,0.4)] text-center">
+                SYNC<br />OPTIMIZED
+              </h2>
+              <p className="text-white/40 text-[10px] sm:text-xs tracking-[0.4em] uppercase font-black mb-12 text-center">
+                Protocol stability reached maximum
+              </p>
+
+              <div className="bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-8 w-full mb-10 flex flex-col items-center relative overflow-hidden backdrop-blur-2xl shadow-2xl">
+                <div className="flex flex-col items-center mb-8 text-center text-[#00f2ff]">
+                  <span className="text-[10px] font-black tracking-[0.5em] uppercase mb-4 opacity-50">FINAL DATA</span>
+                  <span className="text-6xl sm:text-8xl font-mono font-[900] leading-none drop-shadow-[0_0_30px_rgba(0,242,255,0.5)] tracking-tighter">{score.toString().padStart(6, '0')}</span>
+                </div>
+                
+                <div className="w-full h-px bg-white/10 mb-8" />
+                
+                <div className="flex justify-between w-full px-4 text-white/60">
+                   <div className="flex flex-col">
+                      <span className="text-[8px] font-black tracking-widest text-white/20 mb-1 uppercase">Best Record</span>
+                      <span className="text-xl font-mono font-bold">{highScore.toString().padStart(6, '0')}</span>
+                   </div>
+                   <div className="flex flex-col items-end">
+                      <span className="text-[8px] font-black tracking-widest text-white/20 mb-1 uppercase">Missions</span>
+                      <span className="text-xl font-mono font-bold">{totalRuns.toString().padStart(3, '0')}</span>
+                   </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 w-full">
+                <button
                   onClick={() => handleStateChange(GameState.PLAYING)}
-                  className="flex items-center justify-center gap-4 bg-white text-black py-6 rounded-2xl font-black text-xl hover:scale-105 active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-4 bg-white text-black w-full py-6 rounded-2xl font-[1000] text-xl tracking-tight shadow-[0_20px_60px_rgba(255,255,255,0.2)] hover:scale-[1.03] active:scale-[0.97] transition-all"
                 >
-                  <RotateCcw size={20} />
-                  RUN AGAIN
+                  <RotateCcw size={24} />
+                  NEXT MISSION
                 </button>
+
                 <button 
                   onClick={() => handleStateChange(GameState.START)}
-                  className="flex items-center justify-center gap-3 bg-white/5 border border-white/10 text-white py-5 rounded-2xl font-bold hover:bg-white/10 active:scale-95 transition-all text-sm uppercase tracking-widest"
+                  className="flex items-center justify-center gap-3 text-white/30 text-[11px] font-black uppercase tracking-[0.5em] py-4 hover:text-white transition-colors"
                 >
-                  <Home size={18} />
-                  MENU
+                  <Home size={16} />
+                  EXIT PROTOCOL
                 </button>
               </div>
             </motion.div>

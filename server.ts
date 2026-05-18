@@ -15,7 +15,9 @@ async function startServer() {
   const distPath = path.resolve(rootDir, "dist");
   const indexPath = path.join(distPath, "index.html");
 
-  if (process.env.NODE_ENV === "production" || process.env.RENDER) {
+  const isProduction = process.env.NODE_ENV === "production" || process.env.RENDER || process.env.K_SERVICE;
+
+  if (isProduction) {
     console.log(`[Server] Production mode active. Serving from: ${distPath}`);
 
     // Serve static files with explicit index handling
