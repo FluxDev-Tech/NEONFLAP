@@ -82,7 +82,7 @@ export class GameManager {
     this.gravityDirection = 1;
     this.engine.gravity.y = 1.0; 
     
-    // Player (Bird) - Using a circle for smoother physics
+    // Player (Rocket) - Using a circle for smoother physics
     this.player = Matter.Bodies.circle(100, height / 2, 22, {
       friction: 0,
       frictionAir: 0.045, 
@@ -170,7 +170,7 @@ export class GameManager {
     this.onStateChange(state);
   }
 
-  public flap() {
+  public thrust() {
     if (this.gameState !== GameState.PLAYING || !this.player) return;
     // Consistent, predictable jump
     Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -8.8 });

@@ -477,7 +477,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
           if (gameState === GameState.START || gameState === GameState.GAME_OVER || gameState === GameState.WIN || gameState === GameState.PAUSED) {
               onStateUpdate(GameState.PLAYING);
           } else if (gameState === GameState.PLAYING) {
-              managerRef.current.flap();
+              managerRef.current.thrust();
               soundManager.playFlip();
               // Add juice
               playerPulseRef.current = 1.3;

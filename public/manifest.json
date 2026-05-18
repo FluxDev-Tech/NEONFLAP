@@ -1,9 +1,9 @@
 {
-  "name": "NEON FLAP 2026",
-  "short_name": "NEON FLAP",
+  "name": "NEON ASCENT 2026",
+  "short_name": "NEON ASCENT",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
+  "background_color": "#03030b",
   "theme_color": "#00f2ff",
   "icons": [
     {

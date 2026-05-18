@@ -22,7 +22,7 @@ export default function App() {
 
   const [totalRuns, setTotalRuns] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem('neon-flap-total-runs');
+      const saved = localStorage.getItem('neon-ascent-total-runs') || localStorage.getItem('neon-flap-total-runs');
       return saved ? parseInt(saved, 10) : 0;
     } catch (e) {
       console.warn('Failed to load total runs:', e);
@@ -32,7 +32,7 @@ export default function App() {
 
   const [selectedSkin, setSelectedSkin] = useState<string>(() => {
     try {
-      return localStorage.getItem('neon-flap-selected-skin') || 'DEFAULT';
+      return localStorage.getItem('neon-ascent-selected-skin') || localStorage.getItem('neon-flap-selected-skin') || 'DEFAULT';
     } catch (e) {
       return 'DEFAULT';
     }
@@ -40,7 +40,7 @@ export default function App() {
 
   const [unlockedSkins, setUnlockedSkins] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('neon-flap-unlocked-skins');
+      const saved = localStorage.getItem('neon-ascent-unlocked-skins') || localStorage.getItem('neon-flap-unlocked-skins');
       return saved ? JSON.parse(saved) : ['DEFAULT'];
     } catch (e) {
       console.warn('Failed to load unlocked skins:', e);
@@ -50,7 +50,7 @@ export default function App() {
 
   const [settings, setSettings] = useState(() => {
     try {
-      const saved = localStorage.getItem('neon-flap-settings');
+      const saved = localStorage.getItem('neon-ascent-settings') || localStorage.getItem('neon-flap-settings');
       if (saved) return JSON.parse(saved);
     } catch (e) {
       console.warn('Failed to load settings:', e);
@@ -64,7 +64,7 @@ export default function App() {
   const scoreRef = useRef(0);
   const [highScore, setHighScore] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem('neon-flap-highscore');
+      const saved = localStorage.getItem('neon-ascent-highscore') || localStorage.getItem('neon-flap-highscore');
       return saved ? parseInt(saved, 10) : 0;
     } catch (e) {
       return 0;
@@ -114,19 +114,19 @@ export default function App() {
   useEffect(() => {
     soundManager.setVolume(settings.volume);
     soundManager.setEnabled(settings.soundEnabled);
-    localStorage.setItem('neon-flap-settings', JSON.stringify(settings));
+    localStorage.setItem('neon-ascent-settings', JSON.stringify(settings));
   }, [settings]);
 
   useEffect(() => {
-    localStorage.setItem('neon-flap-total-runs', totalRuns.toString());
+    localStorage.setItem('neon-ascent-total-runs', totalRuns.toString());
   }, [totalRuns]);
 
   useEffect(() => {
-    localStorage.setItem('neon-flap-unlocked-skins', JSON.stringify(unlockedSkins));
+    localStorage.setItem('neon-ascent-unlocked-skins', JSON.stringify(unlockedSkins));
   }, [unlockedSkins]);
 
   useEffect(() => {
-    localStorage.setItem('neon-flap-selected-skin', selectedSkin);
+    localStorage.setItem('neon-ascent-selected-skin', selectedSkin);
   }, [selectedSkin]);
 
   const checkUnlocks = useCallback((currentScore: number, runs: number) => {
@@ -173,7 +173,7 @@ export default function App() {
         soundManager.playLevelUp();
       }
       setHighScore(newScore);
-      localStorage.setItem('neon-flap-highscore', newScore.toString());
+      localStorage.setItem('neon-ascent-highscore', newScore.toString());
     }
   }, [highScore, isNewRecordReached]);
 
