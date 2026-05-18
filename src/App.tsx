@@ -8,11 +8,39 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameState } from './game/GameManager';
 import GameCanvas from './components/GameCanvas';
 import { soundManager } from './game/SoundManager';
-import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home, RefreshCw } from 'lucide-react';
+import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home, RefreshCw, Settings as SettingsIcon, Shield } from 'lucide-react';
+import SettingsOverlay from './components/SettingsOverlay';
+import SkinsOverlay from './components/SkinsOverlay';
+import { SKIN_PROTOCOLS } from './game/SkinPresets';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
-  const [score, setScore] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showSkins, setShowSkins] = useState(false);
+
+  const [totalRuns, setTotalRuns] = useState<number>(() => {
+    const saved = localStorage.getItem('neon-flap-total-runs');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
+  const [selectedSkin, setSelectedSkin] = useState<string>(() => {
+    return localStorage.getItem('neon-flap-selected-skin') || 'DEFAULT';
+  });
+
+  const [unlockedSkins, setUnlockedSkins] = useState<string[]>(() => {
+    const saved = localStorage.getItem('neon-flap-unlocked-skins');
+    return saved ? JSON.parse(saved) : ['DEFAULT'];
+  });
+
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('neon-flap-settings');
+    if (saved) return JSON.parse(saved);
+    return {
+      volume: 0.5,
+      soundEnabled: true,
+      vFXEnabled: true,
+    };
+  });
   const scoreRef = useRef(0);
   const [highScore, setHighScore] = useState<number>(() => {
     const saved = localStorage.getItem('neon-flap-highscore');
@@ -52,12 +80,60 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState]);
 
+  useEffect(() => {
+    soundManager.setVolume(settings.volume);
+    soundManager.setEnabled(settings.soundEnabled);
+    localStorage.setItem('neon-flap-settings', JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem('neon-flap-total-runs', totalRuns.toString());
+  }, [totalRuns]);
+
+  useEffect(() => {
+    localStorage.setItem('neon-flap-unlocked-skins', JSON.stringify(unlockedSkins));
+  }, [unlockedSkins]);
+
+  useEffect(() => {
+    localStorage.setItem('neon-flap-selected-skin', selectedSkin);
+  }, [selectedSkin]);
+
+  const checkUnlocks = useCallback((currentScore: number, runs: number) => {
+    const newUnlocks = [...unlockedSkins];
+    let changed = false;
+
+    if (currentScore >= 20 && !newUnlocks.includes('PHASE')) {
+      newUnlocks.push('PHASE');
+      changed = true;
+    }
+    if (currentScore >= 50 && !newUnlocks.includes('CRIMSON')) {
+      newUnlocks.push('CRIMSON');
+      changed = true;
+    }
+    if (currentScore >= 100 && !newUnlocks.includes('SILVER')) {
+      newUnlocks.push('SILVER');
+      changed = true;
+    }
+    if (runs >= 25 && !newUnlocks.includes('VOID')) {
+      newUnlocks.push('VOID');
+      changed = true;
+    }
+
+    if (changed) {
+      setUnlockedSkins(newUnlocks);
+      // Optional: play an unlock sound if we had one
+    }
+  }, [unlockedSkins]);
+
   // Real-time record detection removed from here and moved into handleScoreUpdate for atomic sync
   
   const handleScoreUpdate = useCallback((newScore: number) => {
     scoreRef.current = newScore;
     setScore(newScore);
     
+    // Check for score-based unlocks
+    checkUnlocks(newScore, totalRuns);
+
     // Atomic update for "ONE BEST SCORE" logic
     if (newScore > highScore) {
       // Trigger new record state if we just surpassed the old high score
@@ -73,12 +149,19 @@ export default function App() {
   const handleStateChange = useCallback((newState: GameState) => {
     // Handling restarts from game-over or manual restart in pause
     if (newState === GameState.PLAYING && (gameState === GameState.GAME_OVER || gameState === GameState.WIN || gameState === GameState.START)) {
+      if (gameState !== GameState.START) {
+        setTotalRuns(prev => {
+          const next = prev + 1;
+          checkUnlocks(highScore, next);
+          return next;
+        });
+      }
       setScore(0);
       scoreRef.current = 0;
       setIsNewRecordReached(false);
     }
     setGameState(newState);
-  }, [gameState]);
+  }, [gameState, highScore, checkUnlocks]);
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] text-white font-sans overflow-hidden select-none">
@@ -88,6 +171,8 @@ export default function App() {
           gameState={gameState}
           onScoreUpdate={handleScoreUpdate}
           onStateUpdate={handleStateChange}
+          vFXEnabled={settings.vFXEnabled}
+          selectedSkinId={selectedSkin}
         />
       </div>
 
@@ -111,7 +196,15 @@ export default function App() {
         </div>
       </div>
 
-      <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-40">
+      <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-40 flex gap-3">
+        {(gameState === GameState.PLAYING || gameState === GameState.START || gameState === GameState.PAUSED) && (
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="pointer-events-auto bg-black/40 hover:bg-white/10 p-3 sm:p-4 rounded-full border border-white/10 transition-all backdrop-blur-md group active:scale-90"
+          >
+            <SettingsIcon size={18} className="text-white group-hover:rotate-90 sm:w-5 sm:h-5 transition-transform" />
+          </button>
+        )}
         {gameState === GameState.PLAYING && (
           <button 
             onClick={() => handleStateChange(GameState.PAUSED)}
@@ -124,6 +217,27 @@ export default function App() {
 
       {/* UI Overlays */}
       <AnimatePresence mode="wait">
+        {showSettings && (
+          <SettingsOverlay 
+            key="settings"
+            settings={settings}
+            onUpdate={setSettings}
+            onClose={() => setShowSettings(false)}
+          />
+        )}
+        {showSkins && (
+          <SkinsOverlay
+            key="skins"
+            unlockedSkins={unlockedSkins}
+            selectedSkinId={selectedSkin}
+            onSelect={(id) => {
+              setSelectedSkin(id);
+              setShowSkins(false);
+            }}
+            onClose={() => setShowSkins(false)}
+            stats={{ best: highScore, total: totalRuns }}
+          />
+        )}
         {gameState === GameState.START && (
           <motion.div 
             key="start"
@@ -188,6 +302,16 @@ export default function App() {
               >
                 <Play size={20} className="fill-current" />
                 START CORE
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowSkins(true)}
+                className="pointer-events-auto flex items-center justify-center gap-4 bg-white/10 border border-white/20 text-white w-full py-4 rounded-xl font-black text-sm tracking-[0.2em] backdrop-blur-md transition-all hover:bg-white/20"
+              >
+                <Shield size={18} className="text-[#ff0055]" />
+                PROTOCOLS HANGAR
               </motion.button>
 
               {deferredPrompt && (

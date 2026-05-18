@@ -1,5 +1,7 @@
 export class SoundManager {
   private ctx: AudioContext | null = null;
+  private masterVolume: number = 1.0;
+  private soundEnabled: boolean = true;
 
   private init() {
     if (!this.ctx) {
@@ -10,7 +12,16 @@ export class SoundManager {
     }
   }
 
+  public setVolume(volume: number) {
+    this.masterVolume = Math.max(0, Math.min(1, volume));
+  }
+
+  public setEnabled(enabled: boolean) {
+    this.soundEnabled = enabled;
+  }
+
   private playTone(freq: number, type: OscillatorType, duration: number, volume: number = 0.1) {
+    if (!this.soundEnabled) return;
     this.init();
     if (!this.ctx) return;
 
@@ -20,7 +31,8 @@ export class SoundManager {
     osc.type = type;
     osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
 
-    gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+    const finalVolume = volume * this.masterVolume;
+    gain.gain.setValueAtTime(finalVolume, this.ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
 
     osc.connect(gain);

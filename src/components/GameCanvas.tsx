@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState, memo } from 'react';
 import { GameManager, GameState } from '../game/GameManager';
 import { soundManager } from '../game/SoundManager';
+import { SKIN_PROTOCOLS } from '../game/SkinPresets';
 
 interface GameCanvasProps {
   onScoreUpdate: (score: number) => void;
   onStateUpdate: (state: GameState) => void;
   gameState: GameState;
+  vFXEnabled?: boolean;
+  selectedSkinId?: string;
 }
 
 interface Particle {
@@ -19,18 +22,19 @@ interface Particle {
   size: number;
 }
 
-export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameState }: GameCanvasProps) {
+export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameState, vFXEnabled = true, selectedSkinId = 'DEFAULT' }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const managerRef = useRef<GameManager | null>(null);
   const requestRef = useRef<number>(0);
-  const lastScoreRef = useRef(0);
+  const lastInteractionTime = useRef(0);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const particlesRef = useRef<Particle[]>([]);
   const shakeRef = useRef(0);
   const birdPulseRef = useRef(1);
 
   const createBurst = (x: number, y: number, color: string, count: number = 10) => {
+    if (!vFXEnabled) return;
     for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 5 + 2;
@@ -47,6 +51,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
   };
 
   const createFlapParticles = (x: number, y: number) => {
+    if (!vFXEnabled) return;
     for (let i = 0; i < 3; i++) {
         particlesRef.current.push({
             x, y,
@@ -152,7 +157,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
       ctx.save();
       
       // Screen Shake
-      if (shakeRef.current > 0.1) {
+      if (vFXEnabled && shakeRef.current > 0.1) {
           ctx.translate((Math.random() - 0.5) * shakeRef.current, (Math.random() - 0.5) * shakeRef.current);
       }
       
@@ -253,49 +258,56 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
         } else if (body.label === 'player') {
             ctx.save();
             ctx.translate(body.position.x, body.position.y);
-            ctx.rotate(Math.max(-0.4, Math.min(0.6, body.velocity.y * 0.04)));
+            const rotation = Math.max(-0.4, Math.min(0.6, body.velocity.y * 0.04));
+            ctx.rotate(rotation);
 
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#00f2ff';
-            
-            ctx.fillStyle = '#f0ff00';
-            ctx.beginPath();
-            ctx.moveTo(-22, -8);
-            ctx.quadraticCurveTo(0, -21, 23, -6);
-            ctx.lineTo(34, 0);
-            ctx.lineTo(23, 10);
-            ctx.quadraticCurveTo(0, 21, -22, 10);
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
+            const skin = SKIN_PROTOCOLS.find(s => s.id === selectedSkinId) || SKIN_PROTOCOLS[0];
 
-            ctx.fillStyle = '#000000';
-            ctx.beginPath();
-            ctx.ellipse(11, -5, 7, 4.5, 0.15, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(14, -6, 1.8, 0, Math.PI * 2);
-            ctx.fill();
+            if (birdImg.current) {
+                // Use the real bird image
+                const w = 52;
+                const h = 40;
+                ctx.drawImage(birdImg.current, -w/2, -h/2, w, h);
+            } else {
+                // High-quality fallback drawing (Recognizable Flappy Shape)
+                ctx.shadowBlur = vFXEnabled ? 10 : 0;
+                ctx.shadowColor = skin.colors.glow;
+                
+                // Body (Skin Primary)
+                ctx.fillStyle = skin.colors.primary;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 24, 18, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = skin.colors.secondary;
+                ctx.lineWidth = 2;
+                ctx.stroke();
 
-            ctx.fillStyle = '#ff0055';
-            ctx.beginPath();
-            ctx.moveTo(-21, -5);
-            ctx.lineTo(-33, 0);
-            ctx.lineTo(-21, 5);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
+                // Eye
+                ctx.fillStyle = skin.colors.secondary;
+                ctx.beginPath();
+                ctx.arc(10, -6, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(14, -6, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Beak
+                ctx.fillStyle = skin.colors.beak;
+                ctx.beginPath();
+                ctx.moveTo(18, 2);
+                ctx.lineTo(34, 4);
+                ctx.lineTo(18, 12);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
             
             ctx.shadowBlur = 0;
-            const glowSize = 46 * birdPulseRef.current;
+            const glowSize = 46 * (vFXEnabled ? birdPulseRef.current : 1);
             const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
-            glow.addColorStop(0, 'rgba(0, 242, 255, 0.22)');
-            glow.addColorStop(1, 'rgba(0, 242, 255, 0)');
+            glow.addColorStop(0, `${skin.colors.glow}33`);
+            glow.addColorStop(1, `${skin.colors.glow}00`);
             ctx.fillStyle = glow;
             ctx.beginPath();
             ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
@@ -402,7 +414,18 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState]);
 
-  const handleInteraction = () => {
+  const handleInteraction = (e?: React.PointerEvent | React.KeyboardEvent) => {
+      // Prevent double trigger from Pointer + Touch + Mouse events
+      const now = Date.now();
+      if (now - lastInteractionTime.current < 80) return;
+      lastInteractionTime.current = now;
+
+      if (e) {
+          // No preventDefault on pointerdown generally unless needed, 
+          // but we want to stop propagation to avoid unwanted effects
+          e.stopPropagation();
+      }
+
       if (managerRef.current) {
           if (gameState === GameState.START || gameState === GameState.GAME_OVER || gameState === GameState.WIN || gameState === GameState.PAUSED) {
               onStateUpdate(GameState.PLAYING);
@@ -422,11 +445,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     <div 
         ref={containerRef} 
         className="w-full h-full relative cursor-pointer overflow-hidden touch-none outline-none focus:outline-none"
-        onClick={handleInteraction}
-        onTouchStart={(e) => {
-          e.preventDefault();
-          handleInteraction();
-        }}
+        onPointerDown={(e) => handleInteraction(e)}
         tabIndex={0}
     >
       {isOffline && (
