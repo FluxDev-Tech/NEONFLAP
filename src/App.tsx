@@ -8,14 +8,16 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameState } from './game/GameManager';
 import GameCanvas from './components/GameCanvas';
 import { soundManager } from './game/SoundManager';
-import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home, RefreshCw, Settings as SettingsIcon, Shield, Volume2, VolumeX, Eye, EyeOff } from 'lucide-react';
+import { Trophy, RotateCcw, Play, Zap, Pause, PlayCircle, Home, RefreshCw, Settings as SettingsIcon, Shield, Volume2, VolumeX, Eye, EyeOff, Share2, Info } from 'lucide-react';
 import SkinsOverlay from './components/SkinsOverlay';
+import HelpOverlay from './components/HelpOverlay';
 import { SKIN_PROTOCOLS } from './game/SkinPresets';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
   const [score, setScore] = useState(0);
   const [showSkins, setShowSkins] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const [showSettingsInMenu, setShowSettingsInMenu] = useState(false);
   const [showInstallPopup, setShowInstallPopup] = useState(false);
@@ -97,6 +99,24 @@ export default function App() {
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
+    }
+  };
+
+  const handleShareGame = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Neon Ascent',
+          text: `I just pilot my rocket to a score of ${highScore} in Neon Ascent! Can you beat me?`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
     }
   };
 
@@ -215,8 +235,8 @@ export default function App() {
                   <Zap className="text-[#00f2ff] fill-[#00f2ff]" size={20} />
                 </div>
                 <div>
-                  <h3 className="text-black font-[900] text-sm tracking-tight leading-tight">INSTALL PROTOCOL</h3>
-                  <p className="text-black/40 text-[9px] font-black uppercase tracking-widest mt-0.5">Optimized for Home</p>
+                  <h3 className="text-black font-[900] text-sm tracking-tight leading-tight">DOWNLOAD PROTOCOL</h3>
+                  <p className="text-black/40 text-[9px] font-black uppercase tracking-widest mt-0.5">Optimized for Remote Ops</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -224,7 +244,7 @@ export default function App() {
                   onClick={() => setShowInstallPopup(false)}
                   className="flex-1 py-3.5 text-black/40 text-[10px] font-black uppercase tracking-widest hover:text-black transition-colors rounded-xl hover:bg-black/5"
                 >
-                  DISMISS
+                  DEFER
                 </button>
                 <button 
                   onClick={() => {
@@ -233,7 +253,7 @@ export default function App() {
                   }}
                   className="flex-[2] py-3.5 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-best shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                  INSTALL NOW
+                  SYNC TO SYSTEM
                 </button>
               </div>
             </div>
@@ -296,7 +316,6 @@ export default function App() {
       <AnimatePresence mode="wait">
         {showSkins && (
           <SkinsOverlay
-            key="skins"
             unlockedSkins={unlockedSkins}
             selectedSkinId={selectedSkin}
             onSelect={(id) => {
@@ -305,6 +324,11 @@ export default function App() {
             }}
             onClose={() => setShowSkins(false)}
             stats={{ best: highScore, total: totalRuns }}
+          />
+        )}
+        {showHelp && (
+          <HelpOverlay
+            onClose={() => setShowHelp(false)}
           />
         )}
       {gameState === GameState.START && (
@@ -407,6 +431,28 @@ export default function App() {
                   </motion.button>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowHelp(true)}
+                    className="pointer-events-auto flex flex-col items-center justify-center gap-2 bg-white/5 border border-white/15 text-white py-5 rounded-2xl font-black text-[10px] tracking-best backdrop-blur-md transition-all hover:bg-white/15"
+                  >
+                    <Info size={20} className="text-[#00f2ff]" />
+                    MANUAL
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleShareGame}
+                    className="pointer-events-auto flex flex-col items-center justify-center gap-2 bg-white/5 border border-white/15 text-white py-5 rounded-2xl font-black text-[10px] tracking-best backdrop-blur-md transition-all hover:bg-white/15"
+                  >
+                    <Share2 size={20} className="text-[#00f2ff]" />
+                    INVITE
+                  </motion.button>
+                </div>
+
                 <AnimatePresence>
                   {showSettingsInMenu && (
                     <motion.div
@@ -481,7 +527,7 @@ export default function App() {
                     className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 py-4 rounded-xl backdrop-blur-md transition-all hover:bg-white/10"
                   >
                     <Zap size={14} className="text-[#f0ff00]" />
-                    <span className="text-[10px] font-black tracking-widest uppercase">Direct Access</span>
+                    <span className="text-[10px] font-black tracking-widest uppercase">Sync Adapter</span>
                   </motion.button>
                 )}
               </div>
@@ -655,6 +701,14 @@ export default function App() {
                 >
                   <RefreshCw size={24} className="animate-spin-once" />
                   REBOOT CORES
+                </button>
+
+                <button
+                  onClick={handleShareGame}
+                  className="flex items-center justify-center gap-4 bg-white/5 border border-white/10 text-white w-full py-5 rounded-2xl font-black text-[10px] tracking-best uppercase hover:bg-white/10 transition-all"
+                >
+                   <Share2 size={18} />
+                   Broadcast Score
                 </button>
 
                 <button 
