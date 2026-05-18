@@ -334,6 +334,8 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
                 ctx.filter = 'hue-rotate(180deg) brightness(1.1) saturate(1.5)';
             } else if (selectedSkinId === 'CRIMSON') {
                 ctx.filter = 'hue-rotate(300deg) brightness(1.2) contrast(1.1)';
+            } else if (selectedSkinId === 'GOLD') {
+                ctx.filter = 'sepia(0.8) saturate(5) hue-rotate(10deg) brightness(1.2) contrast(1.1) drop-shadow(0 0 12px #fbbf24)';
             } else if (selectedSkinId === 'VOID') {
                 ctx.filter = 'grayscale(1) brightness(0.4) contrast(1.5) drop-shadow(0 0 10px #7c3aed)';
             } else {

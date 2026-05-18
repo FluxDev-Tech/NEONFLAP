@@ -141,12 +141,12 @@ export default function App() {
       newUnlocks.push('CRIMSON');
       changed = true;
     }
-    if (currentScore >= 100 && !newUnlocks.includes('SILVER')) {
-      newUnlocks.push('SILVER');
+    if (currentScore >= 100 && !newUnlocks.includes('VOID')) {
+      newUnlocks.push('VOID');
       changed = true;
     }
-    if (runs >= 25 && !newUnlocks.includes('VOID')) {
-      newUnlocks.push('VOID');
+    if (currentScore >= 150 && !newUnlocks.includes('GOLD')) {
+      newUnlocks.push('GOLD');
       changed = true;
     }
 
@@ -334,12 +334,16 @@ export default function App() {
                   <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[#00f2ff] rounded-tl-[40px]" />
                   <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[#ff0055] rounded-br-[40px]" />
                   
-                  <div className="absolute top-6 left-6 flex flex-col gap-1">
-                    <span className="text-[#00f2ff]/20 font-mono text-[8px] tracking-[0.3em]">VERSION_2.6.0</span>
+                  <div className="absolute top-6 left-6 flex flex-col">
+                    <span className="text-[#00f2ff]/30 font-mono text-[8px] tracking-[0.4em] uppercase mb-1">System Best</span>
                     <div className="flex items-center gap-2">
-                       <Trophy size={8} className="text-[#00f2ff]/40" />
-                       <span className="text-[#00f2ff]/40 font-mono text-[10px] font-bold">{highScore.toString().padStart(6, '0')}</span>
+                       <Trophy size={10} className="text-[#00f2ff]/50" />
+                       <span className="text-[#00f2ff]/60 font-mono text-xs sm:text-sm font-black tracking-widest">{highScore.toString().padStart(6, '0')}</span>
                     </div>
+                  </div>
+                  
+                  <div className="absolute top-6 right-6">
+                    <span className="text-white/10 font-mono text-[8px] tracking-[0.3em]">V_2.6.5</span>
                   </div>
                   
                   <div className="relative z-10 flex flex-col items-center">
@@ -347,12 +351,12 @@ export default function App() {
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.4 }}
-                      className="mb-2 bg-[#ff0055] text-white text-[8px] sm:text-[10px] font-black px-4 py-1 rounded-full tracking-widest shadow-[0_0_20px_rgba(255,0,85,0.4)] border border-white/10 uppercase"
+                      className="mb-4 bg-[#ff0055] text-white text-[8px] sm:text-[10px] font-black px-4 py-1.5 rounded-full tracking-[0.3em] shadow-[0_0_20px_rgba(255,0,85,0.4)] border border-white/10 uppercase"
                     >
-                      Legacy Edition
+                      Integrated Protocol
                     </motion.div>
                     
-                    <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_35px_rgba(0,242,255,0.3)] leading-[0.8] mb-4 text-center">
+                    <h1 className="text-6xl sm:text-8xl lg:text-9xl font-[900] italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_40px_rgba(0,242,255,0.4)] leading-[0.8] mb-8 text-center">
                       NEON<br />FLAP
                     </h1>
                     

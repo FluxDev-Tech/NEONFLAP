@@ -49,6 +49,18 @@ export const SKIN_PROTOCOLS: SkinProtocol[] = [
     }
   },
   {
+    id: 'GOLD',
+    name: 'AUREUM_ELITE',
+    description: 'The ultimate golden chassis.',
+    requirement: 'SCORE 150+',
+    colors: {
+      primary: '#fbbf24',
+      secondary: '#ffffff',
+      glow: '#fbbf24',
+      beak: '#000000',
+    }
+  },
+  {
     id: 'VOID',
     name: 'VOID_WALKER',
     description: 'Experimental dark-matter chassis.',
