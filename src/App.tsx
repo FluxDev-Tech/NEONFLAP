@@ -241,25 +241,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Tutorial Overlay */}
-      <AnimatePresence>
-        {gameState === GameState.PLAYING && score === 0 && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
-          >
-            <div className="flex flex-col items-center gap-4 bg-black/20 backdrop-blur-sm p-8 rounded-[40px] border border-white/5">
-              <div className="w-16 h-16 border-2 border-white/30 rounded-full flex items-center justify-center animate-bounce">
-                <Play className="text-white fill-current translate-x-0.5" size={24} />
-              </div>
-              <p className="text-[10px] font-black tracking-[0.5em] uppercase text-white/50">TAP TO JUMP</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Game View */}
       <div className="absolute inset-0">
         <GameCanvas 
@@ -271,25 +252,34 @@ export default function App() {
         />
       </div>
 
-      <div className="absolute top-4 left-4 sm:top-8 sm:left-8 z-40 pointer-events-none select-none">
-        <div className="p-4 sm:p-5 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-[0_0_30px_rgba(0,242,255,0.05)]">
-          <div className="flex flex-col">
-            <div className={`text-3xl sm:text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/95'}`}>
-              {score.toString().padStart(6, '0')}
-            </div>
+      <AnimatePresence>
+        {gameState !== GameState.START && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-4 left-4 sm:top-8 sm:left-8 z-40 pointer-events-none select-none"
+          >
+            <div className="p-4 sm:p-5 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-[0_0_30px_rgba(0,242,255,0.05)]">
+              <div className="flex flex-col">
+                <div className={`text-3xl sm:text-5xl font-mono font-bold tabular-nums tracking-tighter leading-none transition-all duration-300 ${isNewRecordReached ? 'text-[#f0ff00] drop-shadow-[0_0_20px_rgba(240,255,0,0.6)] animate-pulse' : 'text-white/95'}`}>
+                  {score.toString().padStart(6, '0')}
+                </div>
 
-            <div className="flex flex-col mt-2 opacity-50">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Trophy size={10} className="text-[#00f2ff]" />
-                <span className="text-[7px] sm:text-[9px] uppercase font-black tracking-[0.3em] leading-none">SYSTEM BEST</span>
+                <div className="flex flex-col mt-2 opacity-50">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Trophy size={10} className="text-[#00f2ff]" />
+                    <span className="text-[7px] sm:text-[9px] uppercase font-black tracking-[0.3em] leading-none">SYSTEM BEST</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-mono font-bold leading-none tabular-nums text-[#00f2ff]">
+                    {displayedBest.toString().padStart(6, '0')}
+                  </span>
+                </div>
               </div>
-              <span className="text-xs sm:text-sm font-mono font-bold leading-none tabular-nums text-[#00f2ff]">
-                {displayedBest.toString().padStart(6, '0')}
-              </span>
             </div>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-40 flex gap-3">
         {gameState === GameState.PLAYING && (
@@ -339,11 +329,18 @@ export default function App() {
                 className="flex flex-col items-center relative w-full max-w-[320px] sm:max-w-xl mb-12"
               >
                 {/* Boxed Title Container */}
-                <div className="relative w-full p-8 sm:p-16 border border-[#00f2ff]/30 rounded-[40px] bg-black/40 backdrop-blur-xl overflow-hidden group shadow-[0_0_50px_rgba(0,242,255,0.1)]">
+                <div className="relative w-full p-8 sm:p-16 border border-[#00f2ff]/30 rounded-[40px] bg-black/40 backdrop-blur-xl overflow-hidden group shadow-[0_0_50px_rgba(0,242,255,0.1)] mb-12">
                   {/* Tech Accents */}
                   <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[#00f2ff] rounded-tl-[40px]" />
                   <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[#ff0055] rounded-br-[40px]" />
-                  <div className="absolute top-6 left-6 text-[#00f2ff]/20 font-mono text-[8px] tracking-[0.3em]">VERSION_2.6.0</div>
+                  
+                  <div className="absolute top-6 left-6 flex flex-col gap-1">
+                    <span className="text-[#00f2ff]/20 font-mono text-[8px] tracking-[0.3em]">VERSION_2.6.0</span>
+                    <div className="flex items-center gap-2">
+                       <Trophy size={8} className="text-[#00f2ff]/40" />
+                       <span className="text-[#00f2ff]/40 font-mono text-[10px] font-bold">{highScore.toString().padStart(6, '0')}</span>
+                    </div>
+                  </div>
                   
                   <div className="relative z-10 flex flex-col items-center">
                     <motion.div
@@ -493,7 +490,6 @@ export default function App() {
                   <div className="w-1 h-1 bg-white rounded-full animate-ping" />
                   <span className="text-[9px] font-black tracking-[0.5em] uppercase">Ready for Sync</span>
                 </div>
-                <p className="text-[8px] font-bold tracking-[0.3em] uppercase opacity-50">Tap screen to initiate</p>
               </motion.div>
             </div>
           </motion.div>
