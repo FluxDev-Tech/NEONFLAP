@@ -80,19 +80,19 @@ export class GameManager {
     this.score = 0;
     this.onScoreChange(this.score);
     this.gravityDirection = 1;
-    this.engine.gravity.y = 1.2; // Slightly stronger gravity for punchier gameplay
+    this.engine.gravity.y = 1.0; 
     
     // Player (Bird) - Using a circle for smoother physics
     this.player = Matter.Bodies.circle(100, height / 2, 22, {
       friction: 0,
-      frictionAir: 0.04, 
+      frictionAir: 0.045, 
       restitution: 0.1, 
-      density: 0.0012,
+      density: 0.001,
       label: 'player'
     });
     
     // Bounds (Floor/Ceiling)
-    const worldWidth = width * 150; // Increased level length
+    const worldWidth = width * 200; 
     const ground = Matter.Bodies.rectangle(worldWidth / 2, height + 60, worldWidth, 120, { 
       isStatic: true, 
       label: 'ground',
@@ -107,24 +107,24 @@ export class GameManager {
     Matter.World.add(this.world, [this.player, ground, ceiling]);
 
     // Level Generation - Pipes
-    const gapSize = Math.min(300, Math.max(220, height * 0.38)); 
-    const pipeSpacing = 850;
-    const pipeCount = 150;
+    const gapSize = Math.min(340, Math.max(260, height * 0.44)); 
+    const pipeSpacing = 950;
+    const pipeCount = 180;
 
     for (let i = 0; i < pipeCount; i++) {
-        const x = 900 + i * pipeSpacing; 
-        const minH = 120;
+        const x = 1000 + i * pipeSpacing; 
+        const minH = 100;
         const maxH = height - gapSize - minH;
         const topPipeH = minH + Math.random() * maxH;
         
         // Dynamic pipe sizing
-        const topPipe = Matter.Bodies.rectangle(x, topPipeH / 2, 90, topPipeH, { 
+        const topPipe = Matter.Bodies.rectangle(x, topPipeH / 2, 85, topPipeH, { 
             isStatic: true, 
             label: 'obstacle'
         });
         
         const bottomPipeH = height - topPipeH - gapSize;
-        const bottomPipe = Matter.Bodies.rectangle(x, height - bottomPipeH / 2, 90, bottomPipeH, { 
+        const bottomPipe = Matter.Bodies.rectangle(x, height - bottomPipeH / 2, 85, bottomPipeH, { 
             isStatic: true, 
             label: 'obstacle'
         });
@@ -172,16 +172,16 @@ export class GameManager {
 
   public flap() {
     if (this.gameState !== GameState.PLAYING || !this.player) return;
-    // Stronger, snappier impulse
-    Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -9.5 });
+    // Consistent, predictable jump
+    Matter.Body.setVelocity(this.player, { x: this.player.velocity.x, y: -8.8 });
   }
 
   public step(delta: number) {
     if (this.gameState === GameState.PLAYING && this.player) {
-      // Linear speed scaling based on performance/score
-      const baseSpeed = 4.5; 
-      const maxSpeedBonus = 5.5;
-      const speedIncrease = Math.min(maxSpeedBonus, this.score / 600);
+      // Slower speed progression
+      const baseSpeed = 4.0; 
+      const maxSpeedBonus = 4.0;
+      const speedIncrease = Math.min(maxSpeedBonus, this.score / 800);
       const currentSpeed = baseSpeed + speedIncrease;
 
       // Lock forward velocity

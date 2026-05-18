@@ -11,25 +11,24 @@ async function startServer() {
   });
 
   // Static assets and SPA handling
-  const rootDir = process.cwd();
-  const distPath = path.resolve(rootDir, "dist");
+  const distPath = path.resolve(process.cwd(), "dist");
   const indexPath = path.join(distPath, "index.html");
 
   if (process.env.NODE_ENV === "production" || process.env.RENDER) {
-    console.log(`[Server] Production/Cloud environment detected.`);
-    console.log(`[Server] Serving from: ${distPath}`);
+    console.log(`[Server] Production mode active. Serving from: ${distPath}`);
 
-    // Serve static files from /dist
+    // Serve static files with explicit index handling
     app.use(express.static(distPath, {
-      maxAge: '1d'
+      maxAge: '1d',
+      index: 'index.html'
     }));
     
-    // SPA catch-all: return index.html for any unknown requests
+    // SPA catch-all
     app.get("*", (req, res) => {
       res.sendFile(indexPath, (err) => {
         if (err) {
-          console.error(`[Server] Fallback error: index.html not found!`, err);
-          res.status(404).send("Game core files missing. Please run build script.");
+          console.error(`[Server] Error: Failed to send index.html. Path: ${indexPath}`);
+          res.status(500).send("Game resources missing. Please ensure the build completed successfully.");
         }
       });
     });
