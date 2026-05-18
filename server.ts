@@ -12,14 +12,11 @@ async function startServer() {
 
   // Static assets with caching for production
   if (process.env.NODE_ENV === "production") {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath, { index: false }));
+    // In production, the bundled server.cjs is in the dist folder
+    const distPath = __dirname;
+    app.use(express.static(distPath));
     
-    app.get("*", (req, res, next) => {
-      // API routes should be handled before this, but we don't have any yet
-      if (req.path.startsWith("/api")) {
-        return next();
-      }
+    app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   } else {

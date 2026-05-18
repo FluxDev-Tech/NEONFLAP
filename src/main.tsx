@@ -13,8 +13,29 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+// Canvas roundRect polyfill for older browsers
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, radii) {
+    this.rect(x, y, w, h);
+    return this;
+  };
+}
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  console.error('Failed to find root element');
+} else {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
+
+window.onerror = (message, source, lineno, colno, error) => {
+  console.error('Global error caught:', { message, source, lineno, colno, error });
+};
+
+window.onunhandledrejection = (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+};

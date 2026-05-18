@@ -20,22 +20,40 @@ export default function App() {
   const [showSkins, setShowSkins] = useState(false);
 
   const [totalRuns, setTotalRuns] = useState<number>(() => {
-    const saved = localStorage.getItem('neon-flap-total-runs');
-    return saved ? parseInt(saved, 10) : 0;
+    try {
+      const saved = localStorage.getItem('neon-flap-total-runs');
+      return saved ? parseInt(saved, 10) : 0;
+    } catch (e) {
+      console.warn('Failed to load total runs:', e);
+      return 0;
+    }
   });
 
   const [selectedSkin, setSelectedSkin] = useState<string>(() => {
-    return localStorage.getItem('neon-flap-selected-skin') || 'DEFAULT';
+    try {
+      return localStorage.getItem('neon-flap-selected-skin') || 'DEFAULT';
+    } catch (e) {
+      return 'DEFAULT';
+    }
   });
 
   const [unlockedSkins, setUnlockedSkins] = useState<string[]>(() => {
-    const saved = localStorage.getItem('neon-flap-unlocked-skins');
-    return saved ? JSON.parse(saved) : ['DEFAULT'];
+    try {
+      const saved = localStorage.getItem('neon-flap-unlocked-skins');
+      return saved ? JSON.parse(saved) : ['DEFAULT'];
+    } catch (e) {
+      console.warn('Failed to load unlocked skins:', e);
+      return ['DEFAULT'];
+    }
   });
 
   const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem('neon-flap-settings');
-    if (saved) return JSON.parse(saved);
+    try {
+      const saved = localStorage.getItem('neon-flap-settings');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to load settings:', e);
+    }
     return {
       volume: 0.5,
       soundEnabled: true,
@@ -44,8 +62,12 @@ export default function App() {
   });
   const scoreRef = useRef(0);
   const [highScore, setHighScore] = useState<number>(() => {
-    const saved = localStorage.getItem('neon-flap-highscore');
-    return saved ? parseInt(saved, 10) : 0;
+    try {
+      const saved = localStorage.getItem('neon-flap-highscore');
+      return saved ? parseInt(saved, 10) : 0;
+    } catch (e) {
+      return 0;
+    }
   });
   const [isNewRecordReached, setIsNewRecordReached] = useState(false);
   const displayedBest = highScore;

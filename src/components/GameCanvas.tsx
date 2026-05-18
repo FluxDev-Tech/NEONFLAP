@@ -120,10 +120,16 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     managerRef.current = manager;
     manager.init(dimensions.width, dimensions.height);
 
-    const ctx = canvasRef.current.getContext('2d', { 
+    const ctxCandidate = canvasRef.current.getContext('2d', { 
         alpha: false,
         desynchronized: true // Performance hint
-    })!;
+    });
+    
+    if (!ctxCandidate) {
+        console.error('Failed to get 2D context');
+        return;
+    }
+    const ctx = ctxCandidate;
     
     let lastTime = performance.now();
     const render = (time: number) => {
