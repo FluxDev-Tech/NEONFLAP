@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 
 async function startServer() {
   const app = express();
@@ -11,30 +10,26 @@ async function startServer() {
     res.json({ status: "healthy", mode: process.env.NODE_ENV, time: new Date().toISOString() });
   });
 
-  // Static assets with caching for production
-  if (process.env.NODE_ENV === "production") {
-    // In production, we serve from the 'dist' folder relative to the project root
-    const rootDir = process.cwd();
-    const distPath = path.resolve(rootDir, "dist");
-    const indexPath = path.join(distPath, "index.html");
-    
-    console.log(`[Server] Production mode active.`);
-    console.log(`[Server] Current Working Directory: ${rootDir}`);
-    console.log(`[Server] Dist Path: ${distPath}`);
-    console.log(`[Server] Index Path: ${indexPath}`);
-    
-    // Serve static files
+  // Static assets and SPA handling
+  const rootDir = process.cwd();
+  const distPath = path.resolve(rootDir, "dist");
+  const indexPath = path.join(distPath, "index.html");
+
+  if (process.env.NODE_ENV === "production" || process.env.RENDER) {
+    console.log(`[Server] Production/Cloud environment detected.`);
+    console.log(`[Server] Serving from: ${distPath}`);
+
+    // Serve static files from /dist
     app.use(express.static(distPath, {
-      maxAge: '1d',
-      index: 'index.html'
+      maxAge: '1d'
     }));
     
-    // SPA catch-all for any other routes
+    // SPA catch-all: return index.html for any unknown requests
     app.get("*", (req, res) => {
       res.sendFile(indexPath, (err) => {
         if (err) {
-          console.error(`[Server] Error sending index.html:`, err);
-          res.status(404).send(`System error: Static assets missing. Please ensure build completed. (Looking in ${distPath})`);
+          console.error(`[Server] Fallback error: index.html not found!`, err);
+          res.status(404).send("Game core files missing. Please run build script.");
         }
       });
     });
