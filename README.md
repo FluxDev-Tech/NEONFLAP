@@ -1,6 +1,6 @@
-# ⚡ NEON FLAP - 2026 EDITION
+# ⚡ NEON ASCENT - 2026 EDITION
 
-**Survive the drift. Fly through the neon forest.**
+**Survive the drift. Pilot your rocket through the neon forest.**
 
 Neon Flap is a futuristic, high-octane reimagining of the classic "Flappy" genre. Built with a sleek vaporwave aesthetic, responsive physics, and progressive difficulty, it's designed to be played anywhere—from your desktop browser to your mobile home screen. The **2026 Edition** brings enhanced performance, a brand new 2026-themed visual identity, and full offline support.
 
@@ -25,7 +25,7 @@ You don't need to go to an app store to install Neon Flap. It uses **PWA (Progre
 1. Open the game link in **Google Chrome**.
 2. Tap the **"Three Dots"** menu in the top right corner.
 3. Select **"Install App"** or **"Add to Home Screen"**.
-4. A "Neon Flap" icon will appear on your home screen.
+4. A "Neon Ascent" icon will appear on your home screen.
 
 ### For iPhone/iOS (Safari)
 1. Open the game link in **Safari**.
@@ -38,11 +38,11 @@ You don't need to go to an app store to install Neon Flap. It uses **PWA (Progre
 ## 🕹️ How to Play
 
 ### **Controls**
-- **Desktop:** Press **SPACE** or **Click** the screen to flap. Press **P** or **ESC** to pause.
-- **Mobile/Tablet:** **Tap anywhere** on the screen to flap. Use the pause button in the top right.
+- **Desktop:** Press **SPACE** or **Click** the screen to thrust. Press **P** or **ESC** to pause.
+- **Mobile/Tablet:** **Tap anywhere** on the screen to thrust. Use the pause button in the top right.
 
 ### **Goal**
-Navigate the neon bird through the gaps in the energy pipes. Each pipe passed increases your score. If you hit a pipe or the boundaries, the flux engine fails and the game ends!
+Navigate the neon rocket through the gaps in the energy pipes. Each pipe passed increases your score. If you hit a pipe or the boundaries, the rocket engine fails and the mission ends!
 
 ---
 

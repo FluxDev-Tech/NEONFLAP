@@ -357,7 +357,7 @@ export default function App() {
                     </motion.div>
                     
                     <h1 className="text-5xl sm:text-9xl font-[1000] italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-[#00f2ff] to-[#0178ff] drop-shadow-[0_0_50px_rgba(0,242,255,0.4)] leading-[0.75] mb-10 text-center">
-                      NEON<br />FLAP
+                      NEON<br />ASCENT
                     </h1>
                     
                     <div className="flex items-center gap-4 w-full justify-center">

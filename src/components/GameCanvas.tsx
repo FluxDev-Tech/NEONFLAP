@@ -32,7 +32,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const particlesRef = useRef<Particle[]>([]);
   const shakeRef = useRef(0);
-  const birdPulseRef = useRef(1);
+  const playerPulseRef = useRef(1);
 
   const createBurst = (x: number, y: number, color: string, count: number = 8) => {
     if (!vFXEnabled) return;
@@ -53,19 +53,20 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     }
   };
 
-  const createFlapParticles = (x: number, y: number) => {
+  const createThrustParticles = (x: number, y: number) => {
     if (!vFXEnabled) return;
     const particles = particlesRef.current;
-    if (particles.length > 80) return; // Cap particles
-    for (let i = 0; i < 2; i++) {
+    if (particles.length > 100) return; 
+    for (let i = 0; i < 4; i++) {
         particles.push({
-            x, y,
-            vx: -2.5 - Math.random() * 1.5,
-            vy: (Math.random() - 0.5) * 3,
+            x: x - 15, // Offset to back of rocket
+            y: y + (Math.random() - 0.5) * 6,
+            vx: -3 - Math.random() * 3,
+            vy: (Math.random() - 0.5) * 2,
             life: 1,
-            maxLife: 0.3,
-            color: '#00f2ff',
-            size: Math.random() * 1.5 + 1
+            maxLife: 0.2 + Math.random() * 0.2,
+            color: Math.random() > 0.5 ? '#00f2ff' : '#ff9900',
+            size: Math.random() * 2 + 1
         });
     }
   };
@@ -90,7 +91,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
-  const birdImg = useRef<HTMLImageElement | null>(null);
   const forestImg = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
@@ -105,15 +105,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
   }, []);
   
   useEffect(() => {
-    const bImg = new Image();
-    bImg.src = '/bird.png';
-    bImg.onload = () => {
-        birdImg.current = bImg;
-    };
-    bImg.onerror = (e) => {
-        console.error('Bird image failed to load', e);
-    };
-
     const fImg = new Image();
     fImg.src = '/forest-bg.png';
     fImg.onload = () => {
@@ -153,7 +144,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
 
       // Update state
       shakeRef.current = Math.max(0, shakeRef.current - dt * 22);
-      birdPulseRef.current = Math.max(1, birdPulseRef.current - dt * 3.5);
+      playerPulseRef.current = Math.max(1, playerPulseRef.current - dt * 3.5);
 
       // Physics step
       manager.step(delta);
@@ -323,56 +314,84 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
         ctx.rotate(rotation);
 
         const skin = SKIN_PROTOCOLS.find(s => s.id === selectedSkinId) || SKIN_PROTOCOLS[0];
-
-        if (birdImg.current) {
-            const pulse = vFXEnabled ? birdPulseRef.current : 1;
-            const w = 52 * pulse;
-            const h = 40 * pulse;
-            
-            // Apply skin filtering
-            if (selectedSkinId === 'PHASE') {
-                ctx.filter = 'hue-rotate(180deg) brightness(1.1) saturate(1.5)';
-            } else if (selectedSkinId === 'CRIMSON') {
-                ctx.filter = 'hue-rotate(300deg) brightness(1.2) contrast(1.1)';
-            } else if (selectedSkinId === 'GOLD') {
-                ctx.filter = 'sepia(0.8) saturate(5) hue-rotate(10deg) brightness(1.2) contrast(1.1) drop-shadow(0 0 12px #fbbf24)';
-            } else if (selectedSkinId === 'VOID') {
-                ctx.filter = 'grayscale(1) brightness(0.4) contrast(1.5) drop-shadow(0 0 10px #7c3aed)';
-            } else {
-                ctx.filter = 'none';
-            }
-            
-            ctx.drawImage(birdImg.current, -w/2, -h/2, w, h);
-            ctx.filter = 'none'; // Reset
-        } else {
-            ctx.fillStyle = skin.colors.primary;
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 24, 18, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = skin.colors.secondary;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Eye
-            ctx.fillStyle = skin.colors.secondary;
-            ctx.beginPath();
-            ctx.arc(10, -6, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#000000';
-            ctx.beginPath();
-            ctx.arc(14, -6, 2.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Beak
-            ctx.fillStyle = skin.colors.beak;
-            ctx.beginPath();
-            ctx.moveTo(18, 2);
-            ctx.lineTo(34, 4);
-            ctx.lineTo(18, 12);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
+        
+        // Rocket Glow Effect
+        if (vFXEnabled) {
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = skin.colors.glow;
         }
+
+        const pulse = vFXEnabled ? playerPulseRef.current : 1;
+        const scale = 1.2 * pulse;
+        ctx.scale(scale, scale);
+
+        // Flame effect when thrusting
+        if (playerPulseRef.current > 1.05) {
+           ctx.fillStyle = '#ff9900';
+           ctx.beginPath();
+           ctx.moveTo(-18, -4);
+           ctx.lineTo(-28 - (playerPulseRef.current - 1) * 30, 0);
+           ctx.lineTo(-18, 4);
+           ctx.fill();
+           
+           ctx.fillStyle = '#ffff00';
+           ctx.beginPath();
+           ctx.moveTo(-18, -2);
+           ctx.lineTo(-24 - (playerPulseRef.current - 1) * 15, 0);
+           ctx.lineTo(-18, 2);
+           ctx.fill();
+        }
+
+        // Rocket Body
+        ctx.fillStyle = skin.colors.primary;
+        ctx.beginPath();
+        ctx.moveTo(-15, -10);      // Bottom back
+        ctx.lineTo(10, -10);       // Bottom mid
+        ctx.bezierCurveTo(25, -8, 25, 8, 10, 10); // Nose cone curve
+        ctx.lineTo(-15, 10);       // Top back
+        ctx.closePath();
+        ctx.fill();
+
+        // Fins
+        ctx.fillStyle = skin.colors.beak; // Using beak color for accent
+        // Top Fin
+        ctx.beginPath();
+        ctx.moveTo(-8, -10);
+        ctx.lineTo(-18, -18);
+        ctx.lineTo(-18, -8);
+        ctx.closePath();
+        ctx.fill();
+        // Bottom Fin
+        ctx.beginPath();
+        ctx.moveTo(-8, 10);
+        ctx.lineTo(-18, 18);
+        ctx.lineTo(-18, 8);
+        ctx.closePath();
+        ctx.fill();
+        // Back Tail
+        ctx.fillRect(-18, -4, 4, 8);
+
+        // Window
+        ctx.fillStyle = '#0a0a0a';
+        ctx.beginPath();
+        ctx.arc(4, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = skin.colors.secondary;
+        ctx.beginPath();
+        ctx.arc(5, -1, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Details/Lines
+        ctx.strokeStyle = 'white';
+        ctx.globalAlpha = 0.2;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-4, -10);
+        ctx.lineTo(-4, 10);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        ctx.shadowBlur = 0; // Reset shadow
         
         ctx.restore();
       }
@@ -461,9 +480,9 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
               managerRef.current.flap();
               soundManager.playFlip();
               // Add juice
-              birdPulseRef.current = 1.3;
+              playerPulseRef.current = 1.3;
               if (managerRef.current.player) {
-                  createFlapParticles(managerRef.current.player.position.x, managerRef.current.player.position.y);
+                  createThrustParticles(managerRef.current.player.position.x, managerRef.current.player.position.y);
               }
           }
       }

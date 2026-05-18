@@ -1,6 +1,6 @@
 {
-  "name": "Neon Flap",
-  "description": "A high-speed neon flappy-bird style game with physics-based mechanics.",
+  "name": "Neon Ascent",
+  "description": "A high-speed neon rocket mission game with physics-based mechanics.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

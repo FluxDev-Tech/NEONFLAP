@@ -14,8 +14,8 @@ export interface SkinProtocol {
 export const SKIN_PROTOCOLS: SkinProtocol[] = [
   {
     id: 'DEFAULT',
-    name: 'CORE_ZERO',
-    description: 'Standard issue neon scout unit.',
+    name: 'STAR_RUNNER',
+    description: 'Standard issue scout rocket.',
     requirement: 'INTEGRATED',
     colors: {
       primary: '#00f2ff',
@@ -26,8 +26,8 @@ export const SKIN_PROTOCOLS: SkinProtocol[] = [
   },
   {
     id: 'PHASE',
-    name: 'PHANTOM_X',
-    description: 'High-visibility spectrum unit.',
+    name: 'NEBULA_X',
+    description: 'High-velocity spectrum vessel.',
     requirement: 'SCORE 20+',
     colors: {
       primary: '#00ffaa',
@@ -38,8 +38,8 @@ export const SKIN_PROTOCOLS: SkinProtocol[] = [
   },
   {
     id: 'CRIMSON',
-    name: 'CRIMSON_WING',
-    description: 'Aggressive data interceptor.',
+    name: 'SOLAR_FLARE',
+    description: 'Aggressive heat-shielded interceptor.',
     requirement: 'SCORE 50+',
     colors: {
       primary: '#ff0055',
@@ -50,8 +50,8 @@ export const SKIN_PROTOCOLS: SkinProtocol[] = [
   },
   {
     id: 'GOLD',
-    name: 'AUREUM_ELITE',
-    description: 'The ultimate golden chassis.',
+    name: 'AUREUM_ORBITER',
+    description: 'The ultimate golden orbital chassis.',
     requirement: 'SCORE 150+',
     colors: {
       primary: '#fbbf24',
@@ -62,8 +62,8 @@ export const SKIN_PROTOCOLS: SkinProtocol[] = [
   },
   {
     id: 'VOID',
-    name: 'VOID_WALKER',
-    description: 'Experimental dark-matter chassis.',
+    name: 'VOID_NAVIGATOR',
+    description: 'Experimental dark-matter propulsion unit.',
     requirement: 'SCORE 100+',
     colors: {
       primary: '#7c3aed',
