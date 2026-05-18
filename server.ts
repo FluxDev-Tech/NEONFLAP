@@ -11,11 +11,11 @@ async function startServer() {
   });
 
   // Static assets and SPA handling
-  const rootDir = process.cwd();
+  const rootDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();
   const distPath = path.resolve(rootDir, "dist");
   const indexPath = path.join(distPath, "index.html");
 
-  if (process.env.NODE_ENV === "production" || process.env.RENDER || true) {
+  if (process.env.NODE_ENV === "production" || process.env.RENDER) {
     console.log(`[Server] Production mode active. Serving from: ${distPath}`);
 
     // Serve static files with explicit index handling
@@ -26,6 +26,10 @@ async function startServer() {
     
     // SPA catch-all
     app.get("*", (req, res) => {
+      // Check if it's an asset request that missed static
+      if (req.path.includes('/assets/')) {
+        return res.status(404).send("Asset not found");
+      }
       res.sendFile(indexPath, (err) => {
         if (err) {
           console.error(`[Server] Error: Failed to send index.html. Path: ${indexPath}`);

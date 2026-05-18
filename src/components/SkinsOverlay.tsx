@@ -20,42 +20,43 @@ export default function SkinsOverlay({ onClose, unlockedSkins, selectedSkinId, o
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[100] flex items-center justify-center bg-[#03030b]/95 backdrop-blur-2xl p-6"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#03030b]/90 backdrop-blur-3xl p-4 sm:p-6"
     >
-      <div className="absolute top-8 right-8">
+      <div className="fixed inset-0" onClick={onClose} />
+
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 20, opacity: 0 }}
+        className="w-full max-w-2xl bg-black/40 p-8 sm:p-12 rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
+      >
         <button
           onClick={onClose}
-          className="p-4 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+          className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-white text-black flex items-center justify-center shadow-xl hover:scale-110 active:scale-90 transition-all z-[110]"
         >
-          <X size={24} />
+          <X size={20} strokeWidth={3} />
         </button>
-      </div>
 
-      <div className="w-full max-w-2xl">
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-[#ff0055]/20 rounded-2xl">
-              <Zap className="text-[#ff0055]" size={32} />
+            <div className="w-16 h-16 bg-[#ff0055] rounded-3xl flex items-center justify-center shadow-[0_0_40px_rgba(255,0,85,0.4)]">
+              <Zap className="text-white fill-white" size={32} />
             </div>
             <div>
-              <h2 className="text-4xl font-black italic tracking-tighter text-white uppercase">Hangar Bay</h2>
-              <p className="text-white/30 text-[10px] font-bold tracking-[0.4em] uppercase">Protocol Management v1.4</p>
+              <h2 className="text-4xl font-[1000] italic tracking-tighter text-white uppercase leading-none">Hangar</h2>
+              <p className="text-[#ff0055] text-[10px] font-black tracking-[0.4em] uppercase mt-1">Skins Archive</p>
             </div>
           </div>
 
-          <div className="hidden sm:flex gap-8">
-            <div className="flex flex-col items-end">
-              <span className="text-[8px] font-black tracking-widest text-white/20 uppercase">Max Flux</span>
-              <span className="text-xl font-mono font-bold text-[#00f2ff]">{stats.best.toString().padStart(6, '0')}</span>
-            </div>
-            <div className="flex flex-col items-end">
-              <span className="text-[8px] font-black tracking-widest text-white/20 uppercase">Missions</span>
-              <span className="text-xl font-mono font-bold text-[#ff0055]">{stats.total}</span>
+          <div className="flex gap-8 border-l border-white/10 pl-8">
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black tracking-widest text-white/20 uppercase mb-1">Max Data</span>
+              <span className="text-2xl font-mono font-[900] text-[#00f2ff]">{stats.best.toString().padStart(6, '0')}</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar scroll-smooth">
           {SKIN_PROTOCOLS.map((skin) => {
             const isUnlocked = unlockedSkins.includes(skin.id);
             const isSelected = selectedSkinId === skin.id;
@@ -127,7 +128,7 @@ export default function SkinsOverlay({ onClose, unlockedSkins, selectedSkinId, o
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
