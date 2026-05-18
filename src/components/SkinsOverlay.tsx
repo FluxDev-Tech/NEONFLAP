@@ -11,6 +11,7 @@ interface SkinsOverlayProps {
     best: number;
     total: number;
   };
+  key?: string | number;
 }
 
 export default function SkinsOverlay({ onClose, unlockedSkins, selectedSkinId, onSelect, stats }: SkinsOverlayProps) {

@@ -11,8 +11,25 @@
     <link rel="apple-touch-icon" href="/icon-512.png" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root" style="background: #0a0a0a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
+      <div style="text-align: center;">
+        <div style="width: 40px; height: 40px; border: 4px solid rgba(0, 242, 255, 0.1); border-top: 4px solid #00f2ff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+        <p style="font-size: 12px; letter-spacing: 0.3em; font-weight: 900; opacity: 0.5;">INITIALIZING NEON PROTOCOL</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <style>
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+    <script>
+      // If after 5 seconds the root is still loading, show an error
+      setTimeout(() => {
+        const root = document.getElementById('root');
+        if (root && root.innerHTML.includes('INITIALIZING')) {
+          root.innerHTML = '<div style="padding: 20px; text-align: center;"><p style="color: #ff0055; font-weight: bold;">CRITICAL SYSTEM FAILURE</p><p style="font-size: 10px; opacity: 0.5; margin-top: 10px;">The game failed to load. Please try refreshing or check your browser compatibility.</p><button onclick="location.reload()" style="margin-top: 20px; background: white; color: black; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">RETRY SYNC</button></div>';
+        }
+      }, 5000);
+    </script>
   </body>
 </html>
 

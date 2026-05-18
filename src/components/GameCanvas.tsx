@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, memo } from 'react';
+import type { PointerEvent, KeyboardEvent } from 'react';
 import { GameManager, GameState } from '../game/GameManager';
 import { soundManager } from '../game/SoundManager';
 import { SKIN_PROTOCOLS } from '../game/SkinPresets';
@@ -419,7 +420,7 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState]);
 
-  const handleInteraction = (e?: React.PointerEvent | React.KeyboardEvent) => {
+  const handleInteraction = (e?: PointerEvent | KeyboardEvent) => {
       // Prevent double trigger from Pointer + Touch + Mouse events
       const now = Date.now();
       if (now - lastInteractionTime.current < 80) return;

@@ -1,10 +1,6 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createServer as createViteServer } from "vite";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
@@ -13,14 +9,23 @@ async function startServer() {
   // Static assets with caching for production
   if (process.env.NODE_ENV === "production") {
     // In production, the bundled server.cjs is in the dist folder
-    const distPath = __dirname;
-    app.use(express.static(distPath));
+    // We can use process.cwd() to find the dist folder safely if we are running from the root
+    const distPath = path.join(process.cwd(), "dist");
     
+    // Serve static files
+    app.use(express.static(distPath, {
+      maxAge: '1d',
+      index: false // We will handle / with res.sendFile below
+    }));
+    
+    // SPA catch-all
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   } else {
     // Vite middleware for development
+    // Dynamic import to avoid loading Vite in production environments
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -29,7 +34,7 @@ async function startServer() {
   }
 
   app.listen(Number(PORT), "0.0.0.0", () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running at http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
   });
 }
 

@@ -9,6 +9,7 @@ interface SettingsOverlayProps {
     vFXEnabled: boolean;
   };
   onUpdate: (settings: any) => void;
+  key?: string | number;
 }
 
 export default function SettingsOverlay({ onClose, settings, onUpdate }: SettingsOverlayProps) {
