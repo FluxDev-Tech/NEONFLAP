@@ -34,34 +34,38 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
   const shakeRef = useRef(0);
   const birdPulseRef = useRef(1);
 
-  const createBurst = (x: number, y: number, color: string, count: number = 10) => {
+  const createBurst = (x: number, y: number, color: string, count: number = 8) => {
     if (!vFXEnabled) return;
+    const particles = particlesRef.current;
+    if (particles.length > 80) return; // Cap particles
     for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 5 + 2;
-        particlesRef.current.push({
+        const speed = Math.random() * 4 + 1.5;
+        particles.push({
             x, y,
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
             life: 1,
-            maxLife: 0.5 + Math.random() * 0.5,
+            maxLife: 0.4 + Math.random() * 0.4,
             color,
-            size: Math.random() * 3 + 2
+            size: Math.random() * 2 + 1.5
         });
     }
   };
 
   const createFlapParticles = (x: number, y: number) => {
     if (!vFXEnabled) return;
-    for (let i = 0; i < 3; i++) {
-        particlesRef.current.push({
+    const particles = particlesRef.current;
+    if (particles.length > 80) return; // Cap particles
+    for (let i = 0; i < 2; i++) {
+        particles.push({
             x, y,
-            vx: -3 - Math.random() * 2,
-            vy: (Math.random() - 0.5) * 4,
+            vx: -2.5 - Math.random() * 1.5,
+            vy: (Math.random() - 0.5) * 3,
             life: 1,
-            maxLife: 0.4,
+            maxLife: 0.3,
             color: '#00f2ff',
-            size: Math.random() * 2 + 1
+            size: Math.random() * 1.5 + 1
         });
     }
   };
@@ -233,138 +237,161 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
       const viewRight = playerX + dimensions.width + 100;
 
       const bodies = manager.world.bodies;
-      bodies.forEach(body => {
-        if (body.label !== 'player' && body.label !== 'ground') {
-            if (body.position.x < viewLeft || body.position.x > viewRight) return;
+      const obstacles: Matter.Body[] = [];
+      const collectibles: Matter.Body[] = [];
+      let playerBody: Matter.Body | null = null;
+      let winBody: Matter.Body | null = null;
+
+      for (let i = 0; i < bodies.length; i++) {
+        const body = bodies[i];
+        if (body.label === 'player') {
+          playerBody = body;
+          continue;
         }
+        if (body.label === 'ground') continue;
+        
+        // Culling
+        if (body.position.x < viewLeft || body.position.x > viewRight) continue;
 
-        if (body.label === 'collectible') {
-            ctx.fillStyle = '#f0ff00';
+        if (body.label === 'obstacle') obstacles.push(body);
+        else if (body.label === 'collectible') collectibles.push(body);
+        else if (body.label === 'win') winBody = body;
+      }
+
+      // Draw Collectibles
+      if (collectibles.length > 0) {
+        ctx.fillStyle = '#f0ff00';
+        for (const body of collectibles) {
+          ctx.beginPath();
+          ctx.arc(body.position.x, body.position.y, 11, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#ffffff';
+        for (const body of collectibles) {
+          ctx.beginPath();
+          ctx.arc(body.position.x, body.position.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Draw Win Line
+      if (winBody) {
+        const gradX = winBody.position.x;
+        const gradient = ctx.createLinearGradient(gradX - 120, 0, gradX + 120, 0);
+        gradient.addColorStop(0, 'transparent');
+        gradient.addColorStop(0.5, 'rgba(0, 242, 255, 0.15)');
+        gradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(gradX - 150, 0, 300, dimensions.height);
+        
+        ctx.strokeStyle = '#00f2ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(gradX, 0);
+        ctx.lineTo(gradX, dimensions.height);
+        ctx.stroke();
+      }
+
+      // Draw Obstacles
+      if (obstacles.length > 0) {
+        const pulse = vFXEnabled ? (Math.sin(now * 0.008) + 1) * 0.15 : 0;
+        const innerAlpha = 0.8 + pulse;
+
+        for (const body of obstacles) {
+          const vertices = body.vertices;
+          const w = Math.abs(vertices[1].x - vertices[0].x);
+          const h = Math.abs(vertices[2].y - vertices[0].y);
+          const cx = (vertices[0].x + vertices[1].x) / 2;
+          const cy = (vertices[0].y + vertices[2].y) / 2;
+          const isTop = cy < dimensions.height / 2;
+
+          // Main body
+          ctx.fillStyle = '#080006';
+          ctx.fillRect(cx - w/2, cy - h/2, w, h);
+          
+          ctx.strokeStyle = '#ff0055';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(cx - w/2, cy - h/2, w, h);
+          
+          // Cap
+          const capH = 20;
+          const capY = isTop ? (cy + h/2 - capH) : (cy - h/2);
+          ctx.fillStyle = '#ff0055';
+          ctx.fillRect(cx - w/2 - 6, capY, w + 12, capH);
+          
+          // Inner detail
+          ctx.fillStyle = `rgba(255, 255, 255, ${innerAlpha})`;
+          ctx.fillRect(cx - w/2 + 7, capY + 5, w - 14, capH - 10);
+        }
+      }
+
+      // Draw Player
+      if (playerBody) {
+        const body = playerBody;
+        ctx.save();
+        ctx.translate(body.position.x, body.position.y);
+        const rotation = Math.max(-0.4, Math.min(0.6, body.velocity.y * 0.04));
+        ctx.rotate(rotation);
+
+        const skin = SKIN_PROTOCOLS.find(s => s.id === selectedSkinId) || SKIN_PROTOCOLS[0];
+
+        if (birdImg.current) {
+            const w = 52;
+            const h = 40;
+            ctx.drawImage(birdImg.current, -w/2, -h/2, w, h);
+        } else {
+            ctx.fillStyle = skin.colors.primary;
             ctx.beginPath();
-            ctx.arc(body.position.x, body.position.y, 11, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, 24, 18, 0, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(body.position.x, body.position.y, 3, 0, Math.PI * 2);
-            ctx.fill();
-        } else if (body.label === 'win') {
-            const gradX = body.position.x;
-            const gradient = ctx.createLinearGradient(gradX - 120, 0, gradX + 120, 0);
-            gradient.addColorStop(0, 'transparent');
-            gradient.addColorStop(0.5, 'rgba(0, 242, 255, 0.15)');
-            gradient.addColorStop(1, 'transparent');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(gradX - 150, 0, 300, dimensions.height);
-            
-            ctx.strokeStyle = '#00f2ff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(gradX, 0);
-            ctx.lineTo(gradX, dimensions.height);
-            ctx.stroke();
-        } else if (body.label === 'player') {
-            ctx.save();
-            ctx.translate(body.position.x, body.position.y);
-            const rotation = Math.max(-0.4, Math.min(0.6, body.velocity.y * 0.04));
-            ctx.rotate(rotation);
-
-            const skin = SKIN_PROTOCOLS.find(s => s.id === selectedSkinId) || SKIN_PROTOCOLS[0];
-
-            if (birdImg.current) {
-                // Use the real bird image
-                const w = 52;
-                const h = 40;
-                ctx.drawImage(birdImg.current, -w/2, -h/2, w, h);
-            } else {
-                // High-quality fallback drawing (Recognizable Flappy Shape)
-                ctx.shadowBlur = vFXEnabled ? 10 : 0;
-                ctx.shadowColor = skin.colors.glow;
-                
-                // Body (Skin Primary)
-                ctx.fillStyle = skin.colors.primary;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 24, 18, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = skin.colors.secondary;
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Eye
-                ctx.fillStyle = skin.colors.secondary;
-                ctx.beginPath();
-                ctx.arc(10, -6, 8, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#000000';
-                ctx.beginPath();
-                ctx.arc(14, -6, 2.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Beak
-                ctx.fillStyle = skin.colors.beak;
-                ctx.beginPath();
-                ctx.moveTo(18, 2);
-                ctx.lineTo(34, 4);
-                ctx.lineTo(18, 12);
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-            }
-            
-            ctx.shadowBlur = 0;
-            const glowSize = 46 * (vFXEnabled ? birdPulseRef.current : 1);
-            const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
-            glow.addColorStop(0, `${skin.colors.glow}33`);
-            glow.addColorStop(1, `${skin.colors.glow}00`);
-            ctx.fillStyle = glow;
-            ctx.beginPath();
-            ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
-        } else if (body.label === 'obstacle') {
-            const vertices = body.vertices;
-            const w = Math.abs(vertices[1].x - vertices[0].x);
-            const h = Math.abs(vertices[2].y - vertices[0].y);
-            const cx = (vertices[0].x + vertices[1].x) / 2;
-            const cy = (vertices[0].y + vertices[2].y) / 2;
-            const isTop = cy < dimensions.height / 2;
-
-            ctx.fillStyle = '#080006';
-            ctx.beginPath();
-            ctx.roundRect(cx - w/2, cy - h/2, w, h, isTop ? [0, 0, 14, 14] : [14, 14, 0, 0]);
-            ctx.fill();
-            
-            ctx.strokeStyle = '#ff0055';
+            ctx.strokeStyle = skin.colors.secondary;
             ctx.lineWidth = 2;
             ctx.stroke();
-            
-            const capH = 20;
-            const capY = isTop ? (cy + h/2 - capH) : (cy - h/2);
-            ctx.fillStyle = '#ff0055';
-            ctx.beginPath();
-            ctx.roundRect(cx - w/2 - 6, capY, w + 12, capH, 6);
-            ctx.fill();
-            
-            const pulse = (Math.sin(now * 0.008) + 1) * 0.15;
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + pulse})`;
-            ctx.beginPath();
-            ctx.roundRect(cx - w/2 + 7, capY + 5, w - 14, capH - 10, 3);
-            ctx.fill();
-        }
-      });
 
-      // Particles
+            // Eye
+            ctx.fillStyle = skin.colors.secondary;
+            ctx.beginPath();
+            ctx.arc(10, -6, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(14, -6, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Beak
+            ctx.fillStyle = skin.colors.beak;
+            ctx.beginPath();
+            ctx.moveTo(18, 2);
+            ctx.lineTo(34, 4);
+            ctx.lineTo(18, 12);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+        
+        ctx.shadowBlur = 0;
+        const glowSize = 46 * (vFXEnabled ? birdPulseRef.current : 1);
+        const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
+        glow.addColorStop(0, `${skin.colors.glow}33`);
+        glow.addColorStop(1, `${skin.colors.glow}00`);
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // Particles - Batch by color to minimize state changes
       if (particles.length > 0) {
-        ctx.save();
+        // Draw squares for better performance
         for (let i = 0; i < particles.length; i++) {
             const p = particles[i];
-            ctx.globalAlpha = p.life;
+            ctx.globalAlpha = p.life * 0.8;
             ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
         }
-        ctx.restore();
+        ctx.globalAlpha = 1.0;
       }
 
       ctx.restore(); // Entities
