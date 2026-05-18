@@ -381,7 +381,6 @@ export default memo(function GameCanvas({ onScoreUpdate, onStateUpdate, gameStat
         if (gameState === GameState.PLAYING) {
             if (currentMState === GameState.START || currentMState === GameState.GAME_OVER || currentMState === GameState.WIN) {
                 managerRef.current.init(dimensions.width, dimensions.height);
-                lastScoreRef.current = 0;
                 particlesRef.current = [];
             }
             managerRef.current.setGameState(GameState.PLAYING);

@@ -43,26 +43,24 @@ export class SoundManager {
   }
 
   public playFlip() {
-    this.playTone(150, 'square', 0.1, 0.05);
-    this.playTone(300, 'sine', 0.15, 0.05);
+    this.playTone(400, 'triangle', 0.1, 0.05);
+    this.playTone(600, 'square', 0.05, 0.02);
   }
 
   public playCollect() {
-    this.playTone(880, 'sine', 0.2, 0.08);
-    setTimeout(() => this.playTone(1320, 'sine', 0.2, 0.05), 50);
+    this.playTone(800, 'sine', 0.1, 0.1);
+    setTimeout(() => this.playTone(1000, 'sine', 0.2, 0.1), 50);
   }
 
   public playGameOver() {
-    const now = this.ctx?.currentTime || 0;
-    this.playTone(200, 'sawtooth', 0.5, 0.1);
-    setTimeout(() => this.playTone(150, 'sawtooth', 0.5, 0.1), 100);
-    setTimeout(() => this.playTone(100, 'sawtooth', 0.8, 0.1), 200);
+    this.playTone(150, 'square', 0.3, 0.2);
+    this.playTone(100, 'sawtooth', 0.5, 0.1);
   }
 
   public playWin() {
-    const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-    freqs.forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.6, 0.08), i * 150);
+    const scale = [523.25, 659.25, 783.99, 1046.50];
+    scale.forEach((freq, i) => {
+        setTimeout(() => this.playTone(freq, 'sine', 0.4, 0.1), i * 100);
     });
   }
 

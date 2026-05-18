@@ -15,6 +15,7 @@ import { SKIN_PROTOCOLS } from './game/SkinPresets';
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
+  const [score, setScore] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [showSkins, setShowSkins] = useState(false);
 
