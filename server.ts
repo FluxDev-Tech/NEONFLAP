@@ -6,19 +6,22 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 3000;
 
+  // Global Health Check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "healthy", mode: process.env.NODE_ENV, time: new Date().toISOString() });
+  });
+
   // Static assets with caching for production
   if (process.env.NODE_ENV === "production") {
     // In production, the bundled server.cjs is in the dist folder
-    // We can use process.cwd() to find the dist folder safely if we are running from the root
-    const distPath = path.join(process.cwd(), "dist");
+    const distPath = path.resolve(__dirname);
     
-    // Serve static files
+    // Serve static files (including index.html automatically for /)
     app.use(express.static(distPath, {
-      maxAge: '1d',
-      index: false // We will handle / with res.sendFile below
+      maxAge: '1d'
     }));
     
-    // SPA catch-all
+    // SPA catch-all for any other routes
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
